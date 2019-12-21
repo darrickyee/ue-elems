@@ -1,0 +1,31 @@
+{
+    "name": "ue-elems",
+    "version": "0.0.1",
+    "description": "Web components for Ue4",
+    "main": "index.js",
+    "module": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc && npx webpack"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/darrickyee/ue-elems.git"
+    },
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/darrickyee/ue-elems/issues"
+    },
+    "homepage": "https://github.com/darrickyee/ue-elems#readme",
+    "devDependencies": {
+        "dts-bundle-webpack": "^1.0.2",
+        "ts-loader": "^6.2.1",
+        "typescript": "^3.7.3",
+        "webpack-node-externals": "^1.7.2"
+    },
+    "dependencies": {
+        "hybrids": "^4.0.3",
+        "lit-html": "^1.1.2"
+    }
+}

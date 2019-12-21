@@ -1,7 +1,5 @@
 import { classMap, html, lit } from '../lib/lit';
-import { Hybrid, PropertyDescriptor, Properties } from 'hybrids';
-
-const styles = html`
+const styles = html `
     <style>
         :host {
             display: flex;
@@ -70,16 +68,6 @@ const styles = html`
         }
     </style>
 `;
-
-interface UeButtonProps extends Properties {
-    label: PropertyDescriptor<string, UeButtonProps>;
-    active: boolean;
-    checkable: boolean;
-    checked: boolean;
-    disabled: boolean;
-    focused: boolean;
-}
-
 export default {
     label: 'Button',
     active: false,
@@ -89,33 +77,34 @@ export default {
     focused: false,
     render: lit(host => {
         const { active, checkable, checked, disabled, focused } = host;
-        return html`
+        return html `
             ${styles}
             <div
                 tabindex="0"
                 class=${classMap({ active, checked, disabled, focused })}
                 @mouseover=${e => {
-                    e.target.focus();
-                }}
+            e.target.focus();
+        }}
                 @mousedown=${() => {
-                    host.active = true;
-                }}
+            host.active = true;
+        }}
                 @mouseleave=${e => {
-                    e.target.blur();
-                }}
+            e.target.blur();
+        }}
                 @mouseup=${() => {
-                    host.active = false;
-                    host.checked = checkable ? !checked : false;
-                }}
+            host.active = false;
+            host.checked = checkable ? !checked : false;
+        }}
                 @focus=${() => {
-                    host.focused = true;
-                }}
+            host.focused = true;
+        }}
                 @blur=${() => {
-                    host.focused = host.active = false;
-                }}
+            host.focused = host.active = false;
+        }}
             >
                 <ue-text .innerHTML=${host.label}></ue-text>
             </div>
         `;
     })
-} as Hybrid<UeButtonProps>;
+};
+//# sourceMappingURL=ue-button.js.map

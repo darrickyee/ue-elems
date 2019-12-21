@@ -1,6 +1,5 @@
 import { html, lit } from '../lib/lit';
-
-const styles = html`
+const styles = html `
     <style>
         #group {
             display: flex;
@@ -14,17 +13,13 @@ const styles = html`
         }
     </style>
 `;
-
 export default {
     name: '',
     data: [],
-    render: lit(
-        (host: any) => html`
+    render: lit((host) => html `
             ${styles}
             <div id="group">
-                ${host.data.map(
-                    ({ label, min, max, step, value, defaultValue }, index) =>
-                        html`
+                ${host.data.map(({ label, min, max, step, value, defaultValue }, index) => html `
                             <ue-slider-widget
                                 .label=${label}
                                 .min=${min || 0}
@@ -33,17 +28,16 @@ export default {
                                 .value=${value || 0}
                                 .defaultValue=${defaultValue || 0}
                                 @change=${e => {
-                                    const { label, defaultValue } = e.target;
-                                    Object.assign(e.detail, {
-                                        index,
-                                        label,
-                                        defaultValue
-                                    });
-                                }}
+        const { label, defaultValue } = e.target;
+        Object.assign(e.detail, {
+            index,
+            label,
+            defaultValue
+        });
+    }}
                             ></ue-slider-widget>
-                        `
-                )}
+                        `)}
             </div>
-        `
-    )
+        `)
 };
+//# sourceMappingURL=ue-slider-grp.js.map

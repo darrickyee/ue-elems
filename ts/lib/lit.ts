@@ -21,7 +21,6 @@ const lit = <T extends Properties = Properties>(
     fn: (host: HybridElement<T>) => TemplateResult
 ): RenderCallback<T> => {
     return (host: HybridElement<T>) => {
-        console.log(`Rendering ${host.tagName}`);
         const template = fn(host);
         return (host: HybridElement<T>, target: Element) => render(template, target);
     };

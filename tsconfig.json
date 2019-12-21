@@ -4,13 +4,14 @@
         "module": "es2015",
         "sourceMap": true,
         "target": "es2016",
-        "lib": ["es2016", "dom", "dom.iterable"],
+        "lib": ["es2016", "dom", "DOM.Iterable"],
         "moduleResolution": "node",
         "allowUmdGlobalAccess": true,
         "experimentalDecorators": true,
         "outDir": "./src",
         "allowJs": false,
-        "typeRoots": ["./ts/typings", "node_modules/@types"]
+        "typeRoots": ["./ts/typings"],
+        "declaration": true
     },
     "include": ["./ts/**/*"],
     "exclude": ["node_modules"]
