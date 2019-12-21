@@ -10,7 +10,6 @@ const bindParent = (hybridsOrFn, propPaths: string[]) => {
             }),
         {}
     );
-    console.log({ source, ...props });
     return { source, ...props };
 };
 

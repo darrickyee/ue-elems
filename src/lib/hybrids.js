@@ -5,7 +5,6 @@ const bindParent = (hybridsOrFn, propPaths) => {
     const props = propPaths.reduce((obj, propPath) => Object.assign(obj, {
         [propPath.split('.').pop()]: host => getprop(host.source, propPath)
     }), {});
-    console.log(Object.assign({ source }, props));
     return Object.assign({ source }, props);
 };
 export { bindParent };
