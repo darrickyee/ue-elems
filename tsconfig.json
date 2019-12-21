@@ -1,0 +1,17 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "module": "es2015",
+        "sourceMap": true,
+        "target": "es2016",
+        "lib": ["es2016", "dom", "dom.iterable"],
+        "moduleResolution": "node",
+        "allowUmdGlobalAccess": true,
+        "experimentalDecorators": true,
+        "outDir": "./src",
+        "allowJs": false,
+        "typeRoots": ["./ts/typings", "node_modules/@types"]
+    },
+    "include": ["./ts/**/*"],
+    "exclude": ["node_modules"]
+}
