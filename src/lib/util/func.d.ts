@@ -15,3 +15,5 @@ export declare const chain: (...fns: Function[]) => (arg: any) => any;
  * @param partArgs
  */
 export declare const unary: (fn: Function, ...partArgs: any[]) => (arg: any) => any;
+export declare const curry: (fn: any) => (...args: any[]) => any;
+export declare const compose: (...fns: any[]) => (...args: any[]) => any;
