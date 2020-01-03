@@ -1,5 +1,5 @@
 import { dispatch } from 'hybrids';
-import { chain, clamp, getElement, remap, repeatUntil, round, unary, select } from '../lib/util';
+import { clamp, getElement, roundTo, select, repeatUntil, pipe, remap, curry } from '../lib/util';
 import { html, lit, once } from '../lib/lit';
 import shft from 'shftjs';
 const { drag } = shft;
@@ -26,8 +26,8 @@ const styles = html `
 
         .handle {
             cursor: default;
-            width: 0.5em;
-            height: 200%;
+            width: 0.8em;
+            height: 300%;
             transform: translate(-50%, 0);
             background-color: var(--color-primary);
             border: 1px solid var(--color-dark);
@@ -36,20 +36,15 @@ const styles = html `
         }
     </style>
 `;
-const initSlider = (target, handleSelector = '.handle') => {
-    const handle = target.querySelector(handleSelector);
-    if (!handle)
-        return;
-    drag(handle);
-};
-const posToVal = (pos, { min = 0, max = 100, step = 1, clientWidth: width = 100 }) => chain(unary(remap, { fromMax: width, toMin: min, toMax: max }), unary(clamp, min, max), unary(round, step))(pos);
+const posToVal = ({ min = 0, max = 100, step = 1, clientWidth: width = 100 }) => pipe(remap(0, width)(min, max), clamp(min, max), roundTo(step));
+const increment = curry((host, pos) => posToVal(host)(pos) < host.value ? -host.step : posToVal(host)(pos) > host.value ? host.step : 0);
 export default {
     min: 0,
     max: 100,
     step: 1,
     value: {
         get: (host, lastValue) => lastValue || 0,
-        set: ({ step }, value) => round(value, step),
+        set: ({ step }, value) => roundTo(step, value),
         observe: (host, value, lastValue) => {
             const { min, max, step } = host;
             dispatch(host, 'change', {
@@ -65,32 +60,27 @@ export default {
             ${styles}
             <div
                 class="slider-bar"
-                @click=${({ path, offsetX }) => {
-            if (path[0] === select('.slider-bar', host.shadowRoot))
-                host.value += Math.sign(posToVal(offsetX, host) - value) * host.step;
-        }}
-                @mousedown=${e => {
-            if (e.path[0] === select('.slider-bar', host.shadowRoot))
-                repeatUntil(() => select('.slider-bar', host.shadowRoot).dispatchEvent(new MouseEvent('click', e)), 'mouseup', 250);
+                @mousedown=${({ path, offsetX }) => {
+            if (path[0] === select('.slider-bar', host.shadowRoot)) {
+                host.value += increment(host, offsetX);
+                repeatUntil(() => {
+                    host.value += increment(host, offsetX);
+                }, 'mouseup');
+            }
         }}
             >
                 <div
                     tabindex="0"
                     class="handle"
-                    style="left: ${remap(value, {
-            fromMin: min,
-            fromMax: max,
-            toMin: 0,
-            toMax: 100
-        })}%"
+                    style="left: ${pipe(remap(min, max)(0, 100), clamp(0, 100))(value)}%"
                     @drag=${({ offsetX, target: { offsetLeft } }) => {
-            host.value = posToVal(offsetX + offsetLeft, host);
+            host.value = posToVal(host)(offsetX + offsetLeft);
         }}
                 ></div>
             </div>
             ${once(() => {
-            getElement('.slider-bar', host.shadowRoot)
-                .then(unary(initSlider, '.handle'))
+            getElement('.handle', host.shadowRoot)
+                .then(drag)
                 .catch(console.log);
         })}
         `;

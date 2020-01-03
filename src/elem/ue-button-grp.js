@@ -1,5 +1,7 @@
 import { classMap, lit, html } from '../lib/lit';
 import { dispatch } from 'hybrids';
+import { selectAll } from '../lib/util';
+// Figure out how to set initial checked state
 const styles = html `
     <style>
         :host {
@@ -22,6 +24,16 @@ export default {
     buttons: [],
     checkable: false,
     singlecheck: false,
+    items: host => selectAll('ue-button', host.shadowRoot),
+    checkedItems: {
+        get: ({ items }) => items.filter((btn) => btn.checked).map((btn) => btn.index),
+        set: ({ items }, value) => {
+            items.forEach((btn, index) => {
+                btn.checked = value.includes(index);
+            });
+            return value;
+        }
+    },
     left: false,
     render: lit(host => {
         const { buttons, left, checkable, singlecheck } = host;
@@ -30,18 +42,20 @@ export default {
             ${buttons.map(({ label, checked, disabled }, index) => html `
                         <ue-button
                             class=${classMap({ left })}
+                            .index=${index}
                             .checkable=${checkable}
-                            .label=${label}
-                            .checked=${checkable && !disabled ? checked : false}
-                            @click=${e => {
-            const { checked, disabled, label } = e.target;
+                            .disabled=${disabled}
+                            @click=${({ target }) => {
             const opts = {
                 bubbles: true,
                 composed: true,
-                detail: { index, label, checked, disabled }
+                detail: Object.assign(Object.assign({}, target), { label })
             };
             dispatch(host, 'buttonclick', opts);
+            if (singlecheck)
+                host.checkedItems = [index];
         }}
+                            ><ue-text .innerHTML=${label}></ue-text
                         ></ue-button>
                     `)}
         `;

@@ -27,9 +27,8 @@ declare module 'ue-elems/elem/ue-text' {
 }
 
 declare module 'ue-elems/elem/ue-button' {
-    import { Hybrid, PropertyDescriptor, Properties } from 'hybrids';
+    import { Hybrid, Properties } from 'hybrids';
     interface UeButtonProps extends Properties {
-        label: PropertyDescriptor<string, UeButtonProps>;
         active: boolean;
         checkable: boolean;
         checked: boolean;

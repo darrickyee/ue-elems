@@ -1,5 +1,6 @@
 import { classMap, html, lit } from '../lib/lit';
-import { Hybrid, PropertyDescriptor, Properties } from 'hybrids';
+import { Hybrid, Properties } from 'hybrids';
+import { curry, select } from '../lib/util';
 
 const styles = html`
     <style>
@@ -15,6 +16,11 @@ const styles = html`
 
             font-size: var(--btn-font-size);
             font-family: var(--btn-font-family);
+        }
+
+        ::slotted(*) {
+            user-select: none;
+            pointer-events: none;
         }
 
         div {
@@ -72,7 +78,6 @@ const styles = html`
 `;
 
 interface UeButtonProps extends Properties {
-    label: PropertyDescriptor<string, UeButtonProps>;
     active: boolean;
     checkable: boolean;
     checked: boolean;
@@ -80,41 +85,45 @@ interface UeButtonProps extends Properties {
     focused: boolean;
 }
 
+const handleEvent = curry((host, { type }) => {
+    switch (type) {
+        case 'focus':
+            host.focused = true;
+            break;
+        case 'blur':
+            host.focused = host.active = false;
+            break;
+        case 'mousedown':
+            host.active = true;
+            break;
+        case 'mouseup':
+            host.active = false;
+            host.checked = host.checkable && !host.disabled ? !host.checked : false;
+            break;
+    }
+});
+
 export default {
-    label: 'Button',
     active: false,
     checkable: false,
     checked: false,
     disabled: false,
     focused: false,
     render: lit(host => {
-        const { active, checkable, checked, disabled, focused } = host;
+        const { active, checked, disabled, focused } = host;
         return html`
             ${styles}
             <div
                 tabindex="0"
                 class=${classMap({ active, checked, disabled, focused })}
-                @mouseover=${e => {
-                    e.target.focus();
-                }}
-                @mousedown=${() => {
-                    host.active = true;
-                }}
-                @mouseleave=${e => {
-                    e.target.blur();
-                }}
-                @mouseup=${() => {
-                    host.active = false;
-                    host.checked = checkable ? !checked : false;
-                }}
-                @focus=${() => {
-                    host.focused = true;
-                }}
-                @blur=${() => {
-                    host.focused = host.active = false;
-                }}
+                @mouseover=${e => e.target.focus()}
+                @mouseleave=${e => e.target.blur()}
+                @mousedown=${handleEvent(host)}
+                @mouseup=${handleEvent(host)}
+                @focus=${handleEvent(host)}
+                @blur=${handleEvent(host)}
             >
-                <ue-text .innerHTML=${host.label}></ue-text>
+                <slot></slot>
             </div>
         `;
     })

@@ -64,17 +64,17 @@ const UeSliderWidget = {
             ></ue-slider>
             <ue-text id="value">${value}</ue-text>
             <ue-button
-                .label=${'R'}
                 @click=${() => {
                     host.value = defaultValue;
                 }}
-            ></ue-button>
+                ><ue-text>R</ue-text></ue-button
+            >
             <ue-button
-                .label=${'0'}
                 @click=${() => {
                     host.value = 0;
                 }}
-            ></ue-button>
+                ><ue-text>0</ue-text></ue-button
+            >
         `;
     })
 };

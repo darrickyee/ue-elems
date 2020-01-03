@@ -58,6 +58,11 @@ declare module 'hybrids' {
     export function parent<T extends Hybrid = Hybrid>(
         hybridsOrFn: T | Function
     ): PropertyDescriptor<null | Element>;
+
+    export function children<T extends Hybrid = Hybrid>(
+        hybridsOrFn: T | Function
+    ): PropertyDescriptor<any[] | Element[]>;
+
     /* Rendering */
 
     export function html(
