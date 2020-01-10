@@ -24,7 +24,7 @@ const styles = host => {
                 height: ${getSize(host.size) || 64}px;
             }
             #bg {
-                background-color: var(--color-primary);
+                background-color: var(--color-secondary);
                 width: inherit;
                 height: inherit;
                 display: flex;
@@ -33,7 +33,7 @@ const styles = host => {
                 clip-path: circle(${getSize(host.size) / 2}px);
             }
             #fg {
-                background-color: var(--color-secondary);
+                background-color: var(--color-primary);
                 width: inherit;
                 height: inherit;
                 clip-path: circle(${getSize(host.size) / 2 - host.border}px);

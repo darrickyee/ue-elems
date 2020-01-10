@@ -281,7 +281,7 @@
                 height: ${I(e.size)||64}px;
             }
             #bg {
-                background-color: var(--color-primary);
+                background-color: var(--color-secondary);
                 width: inherit;
                 height: inherit;
                 display: flex;
@@ -290,7 +290,7 @@
                 clip-path: circle(${I(e.size)/2}px);
             }
             #fg {
-                background-color: var(--color-secondary);
+                background-color: var(--color-primary);
                 width: inherit;
                 height: inherit;
                 clip-path: circle(${I(e.size)/2-e.border}px);
