@@ -81,6 +81,7 @@ interface UeButtonProps extends Properties {
     active: boolean;
     checkable: boolean;
     checked: boolean;
+    clickable: boolean;
     disabled: boolean;
     focused: boolean;
 }
@@ -94,11 +95,13 @@ const handleEvent = curry((host, { type }) => {
             host.focused = host.active = false;
             break;
         case 'mousedown':
-            host.active = true;
+            host.active = host.clickable ? true : false;
             break;
         case 'mouseup':
-            host.active = false;
-            host.checked = host.checkable && !host.disabled ? !host.checked : false;
+            if (host.clickable) {
+                host.active = false;
+                host.checked = host.checkable ? !host.checked : false;
+            }
             break;
     }
 });
@@ -107,6 +110,7 @@ export default {
     active: false,
     checkable: false,
     checked: false,
+    clickable: true,
     disabled: false,
     focused: false,
     render: lit(host => {

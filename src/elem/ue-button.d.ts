@@ -3,6 +3,7 @@ interface UeButtonProps extends Properties {
     active: boolean;
     checkable: boolean;
     checked: boolean;
+    clickable: boolean;
     disabled: boolean;
     focused: boolean;
 }

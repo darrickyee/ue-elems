@@ -100,7 +100,7 @@
             border: var(--btn-click-border);
         }
     </style>
-`,j=v((e,{type:t})=>{switch(t){case"focus":e.focused=!0;break;case"blur":e.focused=e.active=!1;break;case"mousedown":e.active=!0;break;case"mouseup":e.active=!1,e.checked=!(!e.checkable||e.disabled)&&!e.checked}});var M={active:!1,checkable:!1,checked:!1,disabled:!1,focused:!1,render:c(e=>{const{active:t,checked:r,disabled:i,focused:l}=e;return n.html`
+`,j=v((e,{type:t})=>{switch(t){case"focus":e.focused=!0;break;case"blur":e.focused=e.active=!1;break;case"mousedown":e.active=!!e.clickable;break;case"mouseup":e.clickable&&(e.active=!1,e.checked=!!e.checkable&&!e.checked)}});var M={active:!1,checkable:!1,checked:!1,clickable:!0,disabled:!1,focused:!1,render:c(e=>{const{active:t,checked:r,disabled:i,focused:l}=e;return n.html`
             ${w}
             <div
                 tabindex="0"
