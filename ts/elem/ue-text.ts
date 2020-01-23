@@ -1,5 +1,4 @@
 import { lit, html } from '../lib/lit';
-import { Hybrid, PropertyDescriptor, Properties } from 'hybrids';
 
 const styles = html`
     <style>
@@ -28,10 +27,6 @@ const styles = html`
     </style>
 `;
 
-interface UeTextProps extends Properties {
-    slotHTML?: PropertyDescriptor<string, UeTextProps>;
-}
-
 const observers = new WeakMap();
 
 export default {
@@ -45,11 +40,11 @@ export default {
             observer.observe(host, { characterData: true, childList: true, subtree: true });
         }
     },
-    render: lit<UeTextProps>(
+    render: lit(
         host => html`
             ${styles}
             <div class="grid-1 bg" .innerHTML=${host.slotHTML}></div>
             <div class="grid-1 fg" .innerHTML=${host.slotHTML}></div>
         `
     )
-} as Hybrid<UeTextProps>;
+};

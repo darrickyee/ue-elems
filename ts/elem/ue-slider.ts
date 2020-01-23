@@ -1,8 +1,7 @@
-import { Properties, PropertyDescriptor, Hybrid, dispatch } from 'hybrids';
-import { clamp, getElement, roundTo, select, repeatUntil, pipe, remap, curry } from '../lib/util';
+import { dispatch } from 'hybrids';
+import { clamp, findElement, roundTo, select, repeatUntil, pipe, remap, curry } from '../lib/util';
 import { html, lit, once } from '../lib/lit';
 import shft from 'shftjs';
-
 const { drag } = shft;
 
 const styles = html`
@@ -39,13 +38,6 @@ const styles = html`
     </style>
 `;
 
-export interface UeSliderProps extends Properties {
-    min?: number;
-    max?: number;
-    step?: number;
-    value?: PropertyDescriptor<number, UeSliderProps>;
-}
-
 const posToVal = ({ min = 0, max = 100, step = 1, clientWidth: width = 100 }) =>
     pipe(remap(0, width)(min, max), clamp(min, max), roundTo(step));
 
@@ -69,7 +61,7 @@ export default {
             });
         }
     },
-    render: lit<UeSliderProps>(host => {
+    render: lit(host => {
         const { min, max, value } = host;
 
         return html`
@@ -95,10 +87,10 @@ export default {
                 ></div>
             </div>
             ${once(() => {
-                getElement('.handle', host.shadowRoot)
+                findElement('.handle', host.shadowRoot)
                     .then(drag)
                     .catch(console.log);
             })}
         `;
     })
-} as Hybrid<UeSliderProps>;
+};

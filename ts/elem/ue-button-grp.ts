@@ -1,5 +1,5 @@
 import { classMap, lit, html } from '../lib/lit';
-import { Hybrid, Properties, dispatch } from 'hybrids';
+import { dispatch } from 'hybrids';
 import { selectAll } from '../lib/util';
 
 // Figure out how to set initial checked state
@@ -22,11 +22,6 @@ const styles = html`
         }
     </style>
 `;
-
-export interface UeButtonGrpProps extends Properties {
-    buttons?: { label?: string; checked?: boolean; disabled?: boolean }[];
-    left?: boolean;
-}
 
 export default {
     buttons: [],
@@ -72,4 +67,4 @@ export default {
             )}
         `;
     })
-} as Hybrid<UeButtonGrpProps>;
+};

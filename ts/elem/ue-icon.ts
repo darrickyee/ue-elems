@@ -1,5 +1,4 @@
 import { lit, html } from '../lib/lit';
-import { Properties, Hybrid } from 'hybrids';
 
 const shapeUrls = {
     circle: './res/img/Untitled-1.png'
@@ -45,17 +44,11 @@ const styles = host => {
     `;
 };
 
-interface UeIconProps extends Properties {
-    border: number;
-    shape: keyof typeof shapeUrls;
-    size: keyof typeof sizes;
-}
-
 export default {
     border: 8,
     shape: 'circle',
     size: 'medium',
-    render: lit<UeIconProps>(
+    render: lit(
         host =>
             html`
                 ${styles(host)}
@@ -66,4 +59,4 @@ export default {
                 </div>
             `
     )
-} as Hybrid<UeIconProps>;
+};

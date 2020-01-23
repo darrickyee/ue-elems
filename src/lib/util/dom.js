@@ -75,21 +75,30 @@ export function repeatUntil(callback, eventType, delay = 500) {
     });
 }
 /**
- * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `expire` milliseconds and rejects otherwise.
+ * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `timeout` milliseconds and rejects otherwise.
  *
  * @param selector Selector string.
  * @param context Context for `selector`.  Defaults to `document`.
  * @param expire Expiration time (milliseconds).  Defaults to 1000.
  */
-export function getElement(selector, context = document, expire = 1000) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const timer = timeout(expire, true);
-        while (!select(selector, context)) {
-            yield Promise.race([nextframe(), timer]).catch(() => {
-                return Promise.reject(`Element '${selector}' not found.`);
-            });
+export const findElement = (selector, context = document, timeout = 1000) => {
+    return new Promise((resolve, reject) => {
+        let expired;
+        const t = setTimeout(() => {
+            expired = true;
+        }, timeout);
+        function _find() {
+            console.log(`Looking for element ${selector}...`);
+            if (expired)
+                return reject();
+            let el = context.querySelector(selector);
+            if (el) {
+                clearTimeout(t);
+                return resolve(el);
+            }
+            requestAnimationFrame(_find);
         }
-        return select(selector, context);
+        _find();
     });
-}
+};
 //# sourceMappingURL=dom.js.map

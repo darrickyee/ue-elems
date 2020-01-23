@@ -1,5 +1,4 @@
 import { classMap, html, lit } from '../lib/lit';
-import { Hybrid, Properties } from 'hybrids';
 import { curry, select } from '../lib/util';
 
 const styles = html`
@@ -77,15 +76,6 @@ const styles = html`
     </style>
 `;
 
-interface UeButtonProps extends Properties {
-    active: boolean;
-    checkable: boolean;
-    checked: boolean;
-    clickable: boolean;
-    disabled: boolean;
-    focused: boolean;
-}
-
 const handleEvent = curry((host, { type }) => {
     switch (type) {
         case 'focus':
@@ -131,4 +121,4 @@ export default {
             </div>
         `;
     })
-} as Hybrid<UeButtonProps>;
+};

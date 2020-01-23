@@ -1,5 +1,5 @@
 import { dispatch } from 'hybrids';
-import { clamp, getElement, roundTo, select, repeatUntil, pipe, remap, curry } from '../lib/util';
+import { clamp, findElement, roundTo, select, repeatUntil, pipe, remap, curry } from '../lib/util';
 import { html, lit, once } from '../lib/lit';
 import shft from 'shftjs';
 const { drag } = shft;
@@ -79,7 +79,7 @@ export default {
                 ></div>
             </div>
             ${once(() => {
-            getElement('.handle', host.shadowRoot)
+            findElement('.handle', host.shadowRoot)
                 .then(drag)
                 .catch(console.log);
         })}

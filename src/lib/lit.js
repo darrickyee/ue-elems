@@ -15,7 +15,7 @@ const once = directive((fn) => (part) => {
     hasRun.add(part);
 });
 const lit = (fn) => {
-    return (host) => {
+    return host => {
         const template = fn(host);
         return (host, target) => render(template, target);
     };

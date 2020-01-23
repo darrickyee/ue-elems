@@ -21,10 +21,10 @@ export declare const select: (selector: string, context?: ParentNode) => Element
 export declare const selectAll: (selector: string, context?: ParentNode) => Element[];
 export declare function repeatUntil(callback: any, eventType: any, delay?: number): Promise<void>;
 /**
- * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `expire` milliseconds and rejects otherwise.
+ * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `timeout` milliseconds and rejects otherwise.
  *
  * @param selector Selector string.
  * @param context Context for `selector`.  Defaults to `document`.
  * @param expire Expiration time (milliseconds).  Defaults to 1000.
  */
-export declare function getElement(selector: string, context?: ParentNode, expire?: number): Promise<Element | null>;
+export declare const findElement: (selector: string, context?: ParentNode, timeout?: number) => Promise<unknown>;

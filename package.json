@@ -21,11 +21,11 @@
     "devDependencies": {
         "dts-bundle-webpack": "^1.0.2",
         "ts-loader": "^6.2.1",
-        "typescript": "^3.7.3",
+        "typescript": "^3.7.5",
         "webpack-node-externals": "^1.7.2"
     },
     "dependencies": {
-        "hybrids": "^4.0.3",
+        "hybrids": "^4.1.1",
         "lit-html": "^1.1.2"
     }
 }

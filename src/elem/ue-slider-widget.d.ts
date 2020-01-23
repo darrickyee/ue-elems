@@ -1,4 +1,3 @@
-/// <reference path="../../ts/typings/hybrids.d.ts" />
 declare const UeSliderWidget: {
     label: string;
     min: number;
@@ -6,6 +5,6 @@ declare const UeSliderWidget: {
     step: number;
     value: number;
     defaultValue: number;
-    render: import("hybrids").RenderCallback<import("hybrids").Properties>;
+    render: (host: any) => (host: any, target: any) => void;
 };
 export default UeSliderWidget;

@@ -2,7 +2,6 @@ import { directive, html, Part, render, TemplateResult } from 'lit-html';
 import { classMap } from 'lit-html/directives/class-map';
 import { guard } from 'lit-html/directives/guard';
 import { until } from 'lit-html/directives/until';
-import { HybridElement, Properties, RenderCallback } from 'hybrids';
 
 const hasRun = new WeakSet<Part>();
 
@@ -17,12 +16,10 @@ const once = directive((fn: () => unknown) => (part: any): void => {
     hasRun.add(part);
 });
 
-const lit = <T extends Properties = Properties>(
-    fn: (host: HybridElement<T>) => TemplateResult
-): RenderCallback<T> => {
-    return (host: HybridElement<T>) => {
+const lit = (fn: (host: any) => TemplateResult) => {
+    return host => {
         const template = fn(host);
-        return (host: HybridElement<T>, target: Element) => render(template, target);
+        return (host, target) => render(template, target);
     };
 };
 

@@ -1,11 +1,11 @@
 /**
  * Adds an event listener to `target` and returns the associated `removeEventListener` function.
- * 
+ *
  * @example
- * 
+ *
  * // Add listener to document
  * const unlisten = listen(document, 'click', () => console.log('clicked'))
- * 
+ *
  * // Remove listener
  * unlisten();
  *
@@ -13,7 +13,7 @@
  * @param type Passed to `addEventListener`.
  * @param listener Passed to `addEventListener`.
  * @param options Passed to `addEventListener`.
- * 
+ *
  * @returns Function that removes the listener when called.
  */
 export const listen = (
@@ -79,22 +79,33 @@ export async function repeatUntil(callback, eventType, delay = 500) {
 }
 
 /**
- * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `expire` milliseconds and rejects otherwise.
+ * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `timeout` milliseconds and rejects otherwise.
  *
  * @param selector Selector string.
  * @param context Context for `selector`.  Defaults to `document`.
  * @param expire Expiration time (milliseconds).  Defaults to 1000.
  */
-export async function getElement(
-    selector: string,
-    context: ParentNode = document,
-    expire = 1000
-): Promise<Element | null> {
-    const timer = timeout(expire, true);
-    while (!select(selector, context)) {
-        await Promise.race([nextframe(), timer]).catch(() => {
-            return Promise.reject(`Element '${selector}' not found.`);
-        });
-    }
-    return select(selector, context);
-}
+export const findElement = (selector: string, context: ParentNode = document, timeout = 1000) => {
+    return new Promise((resolve, reject) => {
+        let expired;
+
+        const t = setTimeout(() => {
+            expired = true;
+        }, timeout);
+
+        function _find() {
+            console.log(`Looking for element ${selector}...`);
+            if (expired) return reject();
+
+            let el = context.querySelector(selector);
+            if (el) {
+                clearTimeout(t);
+                return resolve(el);
+            }
+
+            requestAnimationFrame(_find);
+        }
+
+        _find();
+    });
+};

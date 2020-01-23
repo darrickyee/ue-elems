@@ -1,11 +1,10 @@
-import { Hybrid, Properties } from 'hybrids';
-interface UeButtonProps extends Properties {
+declare const _default: {
     active: boolean;
     checkable: boolean;
     checked: boolean;
     clickable: boolean;
     disabled: boolean;
     focused: boolean;
-}
-declare const _default: Hybrid<UeButtonProps>;
+    render: (host: any) => (host: any, target: any) => void;
+};
 export default _default;

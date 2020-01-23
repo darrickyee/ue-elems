@@ -1,17 +1,7 @@
-import { Properties, Hybrid } from 'hybrids';
-declare const shapeUrls: {
-    circle: string;
-};
-declare const sizes: {
-    small: number;
-    medium: number;
-    large: number;
-    xlarge: number;
-};
-interface UeIconProps extends Properties {
+declare const _default: {
     border: number;
-    shape: keyof typeof shapeUrls;
-    size: keyof typeof sizes;
-}
-declare const _default: Hybrid<UeIconProps>;
+    shape: string;
+    size: string;
+    render: (host: any) => (host: any, target: any) => void;
+};
 export default _default;

@@ -1,7 +1,6 @@
-/// <reference path="../../ts/typings/hybrids.d.ts" />
 declare const _default: {
     name: string;
     data: any[];
-    render: import("hybrids").RenderCallback<import("hybrids").Properties>;
+    render: (host: any) => (host: any, target: any) => void;
 };
 export default _default;
