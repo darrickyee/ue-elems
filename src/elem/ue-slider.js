@@ -3,6 +3,9 @@ import { clamp, findElement, roundTo, select, repeatUntil, pipe, remap, curry } 
 import { html, lit, once } from '../lib/lit';
 import shft from 'shftjs';
 const { drag } = shft;
+/********** Utility functions **********/
+const posToVal = ({ min = 0, max = 100, step = 1, clientWidth: width = 100 }) => pipe(remap(0, width)(min, max), clamp(min, max), roundTo(step));
+const increment = curry((host, pos) => posToVal(host)(pos) < host.value ? -host.step : posToVal(host)(pos) > host.value ? host.step : 0);
 const styles = html `
     <style>
         :host {
@@ -36,9 +39,7 @@ const styles = html `
         }
     </style>
 `;
-const posToVal = ({ min = 0, max = 100, step = 1, clientWidth: width = 100 }) => pipe(remap(0, width)(min, max), clamp(min, max), roundTo(step));
-const increment = curry((host, pos) => posToVal(host)(pos) < host.value ? -host.step : posToVal(host)(pos) > host.value ? host.step : 0);
-export default {
+const properties = {
     min: 0,
     max: 100,
     step: 1,
@@ -53,37 +54,38 @@ export default {
                 detail: { value, min, max, step }
             });
         }
-    },
-    render: lit(host => {
-        const { min, max, value } = host;
-        return html `
-            ${styles}
-            <div
-                class="slider-bar"
-                @mousedown=${({ path, offsetX }) => {
-            if (path[0] === select('.slider-bar', host.shadowRoot)) {
-                host.value += increment(host, offsetX);
-                repeatUntil(() => {
-                    host.value += increment(host, offsetX);
-                }, 'mouseup');
-            }
-        }}
-            >
-                <div
-                    tabindex="0"
-                    class="handle"
-                    style="left: ${pipe(remap(min, max)(0, 100), clamp(0, 100))(value)}%"
-                    @drag=${({ offsetX, target: { offsetLeft } }) => {
-            host.value = posToVal(host)(offsetX + offsetLeft);
-        }}
-                ></div>
-            </div>
-            ${once(() => {
-            findElement('.handle', host.shadowRoot)
-                .then(drag)
-                .catch(console.log);
-        })}
-        `;
-    })
+    }
 };
+const template = host => {
+    const { min, max, value } = host;
+    return html `
+        ${styles}
+        <div
+            class="slider-bar"
+            @mousedown=${({ path, offsetX }) => {
+        if (path[0] === select('.slider-bar', host.shadowRoot)) {
+            host.value += increment(host, offsetX);
+            repeatUntil(() => {
+                host.value += increment(host, offsetX);
+            }, 'mouseup');
+        }
+    }}
+        >
+            <div
+                tabindex="0"
+                class="handle"
+                style="left: ${pipe(remap(min, max)(0, 100), clamp(0, 100))(value)}%"
+                @drag=${({ offsetX, target: { offsetLeft } }) => {
+        host.value = posToVal(host)(offsetX + offsetLeft);
+    }}
+            ></div>
+        </div>
+        ${once(() => {
+        findElement('.handle', host.shadowRoot)
+            .then(drag)
+            .catch(console.log);
+    })}
+    `;
+};
+export default Object.assign(Object.assign({}, properties), { render: lit(template) });
 //# sourceMappingURL=ue-slider.js.map

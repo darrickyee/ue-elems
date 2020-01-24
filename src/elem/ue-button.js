@@ -1,5 +1,25 @@
 import { classMap, html, lit } from '../lib/lit';
 import { curry } from '../lib/util';
+/********** Utility functions **********/
+const handleEvent = curry((host, { type }) => {
+    switch (type) {
+        case 'focus':
+            host.focused = true;
+            break;
+        case 'blur':
+            host.focused = host.active = false;
+            break;
+        case 'mousedown':
+            host.active = host.clickable ? true : false;
+            break;
+        case 'mouseup':
+            if (host.clickable) {
+                host.active = false;
+                host.checked = host.checkable ? !host.checked : false;
+            }
+            break;
+    }
+});
 const styles = html `
     <style>
         :host {
@@ -74,49 +94,31 @@ const styles = html `
         }
     </style>
 `;
-const handleEvent = curry((host, { type }) => {
-    switch (type) {
-        case 'focus':
-            host.focused = true;
-            break;
-        case 'blur':
-            host.focused = host.active = false;
-            break;
-        case 'mousedown':
-            host.active = host.clickable ? true : false;
-            break;
-        case 'mouseup':
-            if (host.clickable) {
-                host.active = false;
-                host.checked = host.checkable ? !host.checked : false;
-            }
-            break;
-    }
-});
-export default {
+const properties = {
     active: false,
     checkable: false,
     checked: false,
     clickable: true,
     disabled: false,
-    focused: false,
-    render: lit(host => {
-        const { active, checked, disabled, focused } = host;
-        return html `
-            ${styles}
-            <div
-                tabindex="0"
-                class=${classMap({ active, checked, disabled, focused })}
-                @mouseover=${e => e.target.focus()}
-                @mouseleave=${e => e.target.blur()}
-                @mousedown=${handleEvent(host)}
-                @mouseup=${handleEvent(host)}
-                @focus=${handleEvent(host)}
-                @blur=${handleEvent(host)}
-            >
-                <slot></slot>
-            </div>
-        `;
-    })
+    focused: false
 };
+const template = host => {
+    const { active, checked, disabled, focused } = host;
+    return html `
+        ${styles}
+        <div
+            tabindex="0"
+            class=${classMap({ active, checked, disabled, focused })}
+            @mouseover=${e => e.target.focus()}
+            @mouseleave=${e => e.target.blur()}
+            @mousedown=${handleEvent(host)}
+            @mouseup=${handleEvent(host)}
+            @focus=${handleEvent(host)}
+            @blur=${handleEvent(host)}
+        >
+            <slot></slot>
+        </div>
+    `;
+};
+export default Object.assign(Object.assign({}, properties), { render: lit(template) });
 //# sourceMappingURL=ue-button.js.map

@@ -13,31 +13,29 @@ const styles = html `
         }
     </style>
 `;
-export default {
-    name: '',
-    data: [],
-    render: lit((host) => html `
-            ${styles}
-            <div id="group">
-                ${host.data.map(({ label, min, max, step, value, defaultValue }, index) => html `
-                            <ue-slider-widget
-                                .label=${label}
-                                .min=${min || 0}
-                                .max=${max || 100}
-                                .step=${step || 1}
-                                .value=${value || 0}
-                                .defaultValue=${defaultValue || 0}
-                                @change=${e => {
-        const { label, defaultValue } = e.target;
-        Object.assign(e.detail, {
-            index,
-            label,
-            defaultValue
-        });
-    }}
-                            ></ue-slider-widget>
-                        `)}
-            </div>
-        `)
-};
+const properties = { name: '', data: [] };
+const template = (host) => html `
+    ${styles}
+    <div id="group">
+        ${host.data.map(({ label, min, max, step, value, defaultValue }, index) => html `
+                    <ue-slider-widget
+                        .label=${label}
+                        .min=${min || 0}
+                        .max=${max || 100}
+                        .step=${step || 1}
+                        .value=${value || 0}
+                        .defaultValue=${defaultValue || 0}
+                        @change=${e => {
+    const { label, defaultValue } = e.target;
+    Object.assign(e.detail, {
+        index,
+        label,
+        defaultValue
+    });
+}}
+                    ></ue-slider-widget>
+                `)}
+    </div>
+`;
+export default Object.assign(Object.assign({}, properties), { render: lit(template) });
 //# sourceMappingURL=ue-slider-grp.js.map

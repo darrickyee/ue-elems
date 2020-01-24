@@ -1,4 +1,5 @@
 declare const _default: {
+    render: (host: any) => (host: any, target: any) => void;
     min: number;
     max: number;
     step: number;
@@ -9,6 +10,5 @@ declare const _default: {
         }, value: any) => any;
         observe: (host: any, value: any, lastValue: any) => void;
     };
-    render: (host: any) => (host: any, target: any) => void;
 };
 export default _default;

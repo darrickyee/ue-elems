@@ -26,7 +26,7 @@ const styles = html `
     </style>
 `;
 const observers = new WeakMap();
-export default {
+const properties = {
     slotHTML: {
         get: host => host.innerHTML,
         connect: (host, key, invalidate) => {
@@ -35,11 +35,12 @@ export default {
             observers.set(host, observer);
             observer.observe(host, { characterData: true, childList: true, subtree: true });
         }
-    },
-    render: lit(host => html `
-            ${styles}
-            <div class="grid-1 bg" .innerHTML=${host.slotHTML}></div>
-            <div class="grid-1 fg" .innerHTML=${host.slotHTML}></div>
-        `)
+    }
 };
+const template = host => html `
+    ${styles}
+    <div class="grid-1 bg" .innerHTML=${host.slotHTML}></div>
+    <div class="grid-1 fg" .innerHTML=${host.slotHTML}></div>
+`;
+export default Object.assign(Object.assign({}, properties), { render: lit(template) });
 //# sourceMappingURL=ue-text.js.map

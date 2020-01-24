@@ -1,4 +1,5 @@
 declare const _default: {
+    render: (host: any) => (host: any, target: any) => void;
     buttons: any[];
     checkable: boolean;
     singlecheck: boolean;
@@ -12,6 +13,5 @@ declare const _default: {
         }, value: number[]) => number[];
     };
     left: boolean;
-    render: (host: any) => (host: any, target: any) => void;
 };
 export default _default;

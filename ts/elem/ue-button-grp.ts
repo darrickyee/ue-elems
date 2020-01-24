@@ -23,7 +23,7 @@ const styles = html`
     </style>
 `;
 
-export default {
+const properties = {
     buttons: [],
     checkable: false,
     singlecheck: false,
@@ -38,33 +38,36 @@ export default {
             return value;
         }
     },
-    left: false,
-    render: lit(host => {
-        const { buttons, left, checkable, singlecheck } = host;
-        return html`
-            ${styles}
-            ${buttons.map(
-                ({ label, checked, disabled }, index) =>
-                    html`
-                        <ue-button
-                            class=${classMap({ left })}
-                            .index=${index}
-                            .checkable=${checkable}
-                            .disabled=${disabled}
-                            @click=${({ target }) => {
-                                const opts = {
-                                    bubbles: true,
-                                    composed: true,
-                                    detail: { ...target, label }
-                                };
-
-                                dispatch(host, 'buttonclick', opts);
-                                if (singlecheck) host.checkedItems = [index];
-                            }}
-                            ><ue-text .innerHTML=${label}></ue-text
-                        ></ue-button>
-                    `
-            )}
-        `;
-    })
+    left: false
 };
+
+const template = host => {
+    const { buttons, left, checkable, singlecheck } = host;
+    return html`
+        ${styles}
+        ${buttons.map(
+            ({ label, disabled }, index) =>
+                html`
+                    <ue-button
+                        class=${classMap({ left })}
+                        .index=${index}
+                        .checkable=${checkable}
+                        .disabled=${disabled}
+                        @click=${({ target }) => {
+                            const opts = {
+                                bubbles: true,
+                                composed: true,
+                                detail: { ...target, label }
+                            };
+
+                            dispatch(host, 'buttonclick', opts);
+                            if (singlecheck) host.checkedItems = [index];
+                        }}
+                        ><ue-text .innerHTML=${label}></ue-text
+                    ></ue-button>
+                `
+        )}
+    `;
+};
+
+export default { ...properties, render: lit(template) };

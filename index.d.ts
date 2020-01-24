@@ -17,30 +17,31 @@ declare module 'ue-elems/elem' {
 
 declare module 'ue-elems/elem/ue-text' {
     const _default: {
+        render: (host: any) => (host: any, target: any) => void;
         slotHTML: {
             get: (host: any) => any;
             connect: (host: any, key: any, invalidate: any) => void;
         };
-        render: (host: any) => (host: any, target: any) => void;
     };
     export default _default;
 }
 
 declare module 'ue-elems/elem/ue-button' {
     const _default: {
+        render: (host: any) => (host: any, target: any) => void;
         active: boolean;
         checkable: boolean;
         checked: boolean;
         clickable: boolean;
         disabled: boolean;
         focused: boolean;
-        render: (host: any) => (host: any, target: any) => void;
     };
     export default _default;
 }
 
 declare module 'ue-elems/elem/ue-button-grp' {
     const _default: {
+        render: (host: any) => (host: any, target: any) => void;
         buttons: any[];
         checkable: boolean;
         singlecheck: boolean;
@@ -54,13 +55,13 @@ declare module 'ue-elems/elem/ue-button-grp' {
             }, value: number[]) => number[];
         };
         left: boolean;
-        render: (host: any) => (host: any, target: any) => void;
     };
     export default _default;
 }
 
 declare module 'ue-elems/elem/ue-slider' {
     const _default: {
+        render: (host: any) => (host: any, target: any) => void;
         min: number;
         max: number;
         step: number;
@@ -71,39 +72,38 @@ declare module 'ue-elems/elem/ue-slider' {
             }, value: any) => any;
             observe: (host: any, value: any, lastValue: any) => void;
         };
-        render: (host: any) => (host: any, target: any) => void;
     };
     export default _default;
 }
 
 declare module 'ue-elems/elem/ue-slider-grp' {
     const _default: {
+        render: (host: any) => (host: any, target: any) => void;
         name: string;
         data: any[];
-        render: (host: any) => (host: any, target: any) => void;
     };
     export default _default;
 }
 
 declare module 'ue-elems/elem/ue-slider-widget' {
-    const UeSliderWidget: {
+    const _default: {
+        render: (host: any) => (host: any, target: any) => void;
         label: string;
         min: number;
         max: number;
         step: number;
         value: number;
         defaultValue: number;
-        render: (host: any) => (host: any, target: any) => void;
     };
-    export default UeSliderWidget;
+    export default _default;
 }
 
 declare module 'ue-elems/elem/ue-icon' {
     const _default: {
+        render: (host: any) => (host: any, target: any) => void;
         border: number;
         shape: string;
         size: string;
-        render: (host: any) => (host: any, target: any) => void;
     };
     export default _default;
 }

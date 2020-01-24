@@ -1,7 +1,4 @@
 import { lit, html } from '../lib/lit';
-const shapeUrls = {
-    circle: './res/img/Untitled-1.png'
-};
 const sizes = {
     small: 32,
     medium: 64,
@@ -39,17 +36,14 @@ const styles = host => {
         </style>
     `;
 };
-export default {
-    border: 8,
-    shape: 'circle',
-    size: 'medium',
-    render: lit(host => html `
-                ${styles(host)}
-                <div id="bg">
-                    <div id="fg">
-                        <slot></slot>
-                    </div>
-                </div>
-            `)
-};
+const properties = { border: 8, shape: 'circle', size: 'medium' };
+const template = host => html `
+        ${styles(host)}
+        <div id="bg">
+            <div id="fg">
+                <slot></slot>
+            </div>
+        </div>
+    `;
+export default Object.assign(Object.assign({}, properties), { render: lit(template) });
 //# sourceMappingURL=ue-icon.js.map
