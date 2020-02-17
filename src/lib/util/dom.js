@@ -88,7 +88,6 @@ export const findElement = (selector, context = document, timeout = 1000) => {
             expired = true;
         }, timeout);
         function _find() {
-            console.log(`Looking for element ${selector}...`);
             if (expired)
                 return reject();
             let el = context.querySelector(selector);

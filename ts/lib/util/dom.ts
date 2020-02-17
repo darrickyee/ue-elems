@@ -94,7 +94,6 @@ export const findElement = (selector: string, context: ParentNode = document, ti
         }, timeout);
 
         function _find() {
-            console.log(`Looking for element ${selector}...`);
             if (expired) return reject();
 
             let el = context.querySelector(selector);
