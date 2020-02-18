@@ -9,10 +9,10 @@ declare module 'ue-elems/elem' {
     import UeButton from 'ue-elems/elem/ue-button';
     import UeButtonGrp from 'ue-elems/elem/ue-button-grp';
     import UeSlider from 'ue-elems/elem/ue-slider';
-    import UeSliderGrp from 'ue-elems/elem/ue-slider-grp';
+    import UeSliderGroup from 'ue-elems/elem/ue-slider-group';
     import UeSliderWidget from 'ue-elems/elem/ue-slider-widget';
     import UeIcon from 'ue-elems/elem/ue-icon';
-    export { UeButton, UeButtonGrp, UeIcon, UeSlider, UeSliderGrp, UeSliderWidget, UeText };
+    export { UeButton, UeButtonGrp, UeIcon, UeSlider, UeSliderGroup, UeSliderWidget, UeText };
 }
 
 declare module 'ue-elems/elem/ue-text' {
@@ -76,11 +76,16 @@ declare module 'ue-elems/elem/ue-slider' {
     export default _default;
 }
 
-declare module 'ue-elems/elem/ue-slider-grp' {
+declare module 'ue-elems/elem/ue-slider-group' {
     const _default: {
         render: (host: any) => (host: any, target: any) => void;
-        name: string;
-        data: any[];
+        label: string;
+        min: number;
+        max: number;
+        step: number;
+        axislabels: string[];
+        values: any[];
+        defaultValues: any[];
     };
     export default _default;
 }

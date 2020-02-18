@@ -52,6 +52,7 @@ const template = host => {
             .value=${value}
             @change=${e => {
         host.value = e.target.value;
+        Object.assign(e.detail, { label });
     }}
         ></ue-slider>
         <ue-text id="value">${value}</ue-text>
