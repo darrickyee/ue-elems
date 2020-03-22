@@ -20,12 +20,12 @@
     "homepage": "https://github.com/darrickyee/ue-elems#readme",
     "devDependencies": {
         "dts-bundle-webpack": "^1.0.2",
-        "ts-loader": "^6.2.1",
+        "ts-loader": "^6.2.2",
         "typescript": "^3.8.3",
         "webpack-node-externals": "^1.7.2"
     },
     "dependencies": {
         "hybrids": "^4.1.6",
-        "lit-html": "^1.1.2"
+        "lit-html": "^1.2.1"
     }
 }
