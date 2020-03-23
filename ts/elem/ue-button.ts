@@ -1,5 +1,6 @@
 import { classMap, html, lit } from '../lib/lit';
-import { curry } from '../lib/util';
+import { curry } from '../lib/util/index';
+import { define } from 'hybrids';
 
 /********** Utility functions **********/
 
@@ -98,6 +99,21 @@ const styles = html`
     </style>
 `;
 
+const reflectBool = (name, defaultValue = true) => ({
+    get: host => host.hasAttribute(name),
+    set: (host: HTMLElement, value) => {
+        if (value) host.setAttribute(name, '');
+        else host.removeAttribute(name);
+        return !!value;
+    },
+    connect: (host: HTMLElement, key, invalidate) => {
+        host[key] = defaultValue;
+        const obs = new MutationObserver(invalidate);
+        obs.observe(host, { attributeFilter: [key] });
+        return obs.disconnect;
+    }
+});
+
 const properties = {
     active: false,
     checkable: false,
@@ -106,6 +122,8 @@ const properties = {
     disabled: false,
     focused: false
 };
+
+Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
 
 const template = host => {
     const { active, checked, disabled, focused } = host;
@@ -126,7 +144,7 @@ const template = host => {
     `;
 };
 
-export default {
+export const UeButton = define('ue-button', {
     ...properties,
     render: lit(template)
-};
+});

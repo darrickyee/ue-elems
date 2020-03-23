@@ -1,1 +1,1 @@
-export * from './elem';
+export * from './elem/index';

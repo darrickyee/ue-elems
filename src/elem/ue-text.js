@@ -1,4 +1,5 @@
 import { lit, html } from '../lib/lit';
+import { define } from 'hybrids';
 const styles = html `
     <style>
         :host {
@@ -42,5 +43,5 @@ const template = host => html `
     <div class="grid-1 bg" .innerHTML=${host.slotHTML}></div>
     <div class="grid-1 fg" .innerHTML=${host.slotHTML}></div>
 `;
-export default Object.assign(Object.assign({}, properties), { render: lit(template) });
+export const UeText = define('ue-text', Object.assign(Object.assign({}, properties), { render: lit(template) }));
 //# sourceMappingURL=ue-text.js.map

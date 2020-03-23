@@ -1,5 +1,5 @@
-import { dispatch } from 'hybrids';
-import { clamp, findElement, roundTo, select, repeatUntil, pipe, remap, curry } from '../lib/util';
+import { dispatch, define } from 'hybrids';
+import { clamp, findElement, roundTo, select, repeatUntil, pipe, remap, curry } from '../lib/util/index';
 import { html, lit, once } from '../lib/lit';
 import shft from 'shftjs';
 const { drag } = shft;
@@ -87,5 +87,5 @@ const template = host => {
     })}
     `;
 };
-export default Object.assign(Object.assign({}, properties), { render: lit(template) });
+export const UeSlider = define('ue-slider', Object.assign(Object.assign({}, properties), { render: lit(template) }));
 //# sourceMappingURL=ue-slider.js.map

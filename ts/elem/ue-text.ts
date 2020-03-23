@@ -1,4 +1,5 @@
 import { lit, html } from '../lib/lit';
+import { define } from 'hybrids';
 
 const styles = html`
     <style>
@@ -48,7 +49,7 @@ const template = host => html`
     <div class="grid-1 fg" .innerHTML=${host.slotHTML}></div>
 `;
 
-export default {
+export const UeText = define('ue-text', {
     ...properties,
     render: lit(template)
-};
+});

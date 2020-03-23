@@ -1,5 +1,6 @@
 import { classMap, html, lit } from '../lib/lit';
-import { curry } from '../lib/util';
+import { curry } from '../lib/util/index';
+import { define } from 'hybrids';
 /********** Utility functions **********/
 const handleEvent = curry((host, { type }) => {
     switch (type) {
@@ -94,6 +95,22 @@ const styles = html `
         }
     </style>
 `;
+const reflectBool = (name, defaultValue = true) => ({
+    get: host => host.hasAttribute(name),
+    set: (host, value) => {
+        if (value)
+            host.setAttribute(name, '');
+        else
+            host.removeAttribute(name);
+        return !!value;
+    },
+    connect: (host, key, invalidate) => {
+        host[key] = defaultValue;
+        const obs = new MutationObserver(invalidate);
+        obs.observe(host, { attributeFilter: [key] });
+        return obs.disconnect;
+    }
+});
 const properties = {
     active: false,
     checkable: false,
@@ -102,6 +119,7 @@ const properties = {
     disabled: false,
     focused: false
 };
+Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
 const template = host => {
     const { active, checked, disabled, focused } = host;
     return html `
@@ -120,5 +138,5 @@ const template = host => {
         </div>
     `;
 };
-export default Object.assign(Object.assign({}, properties), { render: lit(template) });
+export const UeButton = define('ue-button', Object.assign(Object.assign({}, properties), { render: lit(template) }));
 //# sourceMappingURL=ue-button.js.map

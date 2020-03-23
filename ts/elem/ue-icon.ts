@@ -1,4 +1,5 @@
 import { lit, html } from '../lib/lit';
+import { define } from 'hybrids';
 
 const sizes = {
     small: 32,
@@ -52,7 +53,7 @@ const template = host =>
         </div>
     `;
 
-export default {
+export const UeIcon = define('ue-icon', {
     ...properties,
     render: lit(template)
-};
+});

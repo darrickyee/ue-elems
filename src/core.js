@@ -1,3 +1,3 @@
 'use strict';
-export * from './elem';
+export * from './elem/index';
 //# sourceMappingURL=core.js.map

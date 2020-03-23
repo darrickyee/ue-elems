@@ -1,4 +1,5 @@
 import { lit, html } from '../lib/lit';
+import { define } from 'hybrids';
 const sizes = {
     small: 32,
     medium: 64,
@@ -45,5 +46,5 @@ const template = host => html `
             </div>
         </div>
     `;
-export default Object.assign(Object.assign({}, properties), { render: lit(template) });
+export const UeIcon = define('ue-icon', Object.assign(Object.assign({}, properties), { render: lit(template) }));
 //# sourceMappingURL=ue-icon.js.map
