@@ -3273,10 +3273,6 @@ const styles$2 = html `
             height: 1em;
             cursor: default;
             padding: 0.5em;
-
-            --bg-color-light: rgb(225, 225, 225);
-            --color-primary: rgb(200, 200, 200);
-            --color-dark: rgb(50, 50, 50);
         }
 
         .slider-bar {
