@@ -1,56 +1,51 @@
-import { lit, html } from '../lib/lit';
+import { lit, html, svg } from '../lib/lit';
 import { define } from 'hybrids';
 
-const sizes = {
-    small: 32,
-    medium: 64,
-    large: 96,
-    xlarge: 128
+// Arrow
+const arrow = svg`
+    <svg
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        viewBox="0 0 491.996 491.996"
+        xml:space="preserve"
+    >
+    <path d="M484.132,124.986l-16.116-16.228c-5.072-5.068-11.82-7.86-19.032-7.86c-7.208,0-13.964,2.792-19.036,7.86l-183.84,183.848
+			L62.056,108.554c-5.064-5.068-11.82-7.856-19.028-7.856s-13.968,2.788-19.036,7.856l-16.12,16.128
+			c-10.496,10.488-10.496,27.572,0,38.06l219.136,219.924c5.064,5.064,11.812,8.632,19.084,8.632h0.084
+			c7.212,0,13.96-3.572,19.024-8.632l218.932-219.328c5.072-5.064,7.856-12.016,7.864-19.224
+			C491.996,136.902,489.204,130.046,484.132,124.986z"/>
+    </svg>
+`;
+
+const shapes = {
+    arrow
 };
 
-function getSize(size) {
-    return parseFloat(size) || sizes[size];
-}
+const styles = html`
+    <style>
+        :host {
+            display: block;
+            background-color: transparent;
+            fill: var(--ue-color);
+            position: relative;
+            height: 1em;
+            width: 1em;
+        }
 
-const styles = host => {
-    return html`
-        <style>
-            :host {
-                width: ${getSize(host.size) || 64}px;
-                height: ${getSize(host.size) || 64}px;
-            }
-            #bg {
-                background-color: var(--color-secondary);
-                width: inherit;
-                height: inherit;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                clip-path: circle(${getSize(host.size) / 2}px);
-            }
-            #fg {
-                background-color: var(--color-primary);
-                width: inherit;
-                height: inherit;
-                clip-path: circle(${getSize(host.size) / 2 - host.border}px);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        </style>
-    `;
-};
+        svg {
+            height: inherit;
+            width: inherit;
+            position: absolute;
+        }
+    </style>
+`;
 
-const properties = { border: 8, shape: 'circle', size: 'medium' };
+const properties = { shape: 'arrow' };
 
 const template = host =>
     html`
-        ${styles(host)}
-        <div id="bg">
-            <div id="fg">
-                <slot></slot>
-            </div>
-        </div>
+        ${styles} ${shapes[host.shape]}
     `;
 
 export const UeIcon = define('ue-icon', {

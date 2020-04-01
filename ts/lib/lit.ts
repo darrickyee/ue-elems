@@ -1,7 +1,9 @@
-import { directive, html, Part, render, TemplateResult } from 'lit-html';
-import { classMap } from 'lit-html/directives/class-map';
-import { guard } from 'lit-html/directives/guard';
-import { until } from 'lit-html/directives/until';
+import { directive, Part, render, TemplateResult } from 'lit-html';
+export { html, svg } from 'lit-html';
+export { classMap } from 'lit-html/directives/class-map';
+export { guard } from 'lit-html/directives/guard';
+export { styleMap } from 'lit-html/directives/style-map';
+export { until } from 'lit-html/directives/until';
 
 const hasRun = new WeakSet<Part>();
 
@@ -23,4 +25,4 @@ const lit = (fn: (host: any) => TemplateResult) => {
     };
 };
 
-export { classMap, directive, guard, html, lit, once, until };
+export { directive, lit, once };

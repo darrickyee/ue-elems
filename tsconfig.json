@@ -3,10 +3,10 @@
     "compilerOptions": {
         "module": "es2015",
         "sourceMap": true,
-        "target": "es2016",
-        "lib": ["es2016", "dom", "DOM.Iterable"],
+        "target": "es2017",
+        "lib": ["es2017", "dom", "DOM.Iterable"],
         "moduleResolution": "node",
-        "allowUmdGlobalAccess": true,
+        // "allowUmdGlobalAccess": true,
         "experimentalDecorators": true,
         "outDir": "./src",
         "allowJs": false,

@@ -14,6 +14,11 @@ const styles = html `
             justify-content: center;
             height: 1em;
             cursor: default;
+            padding: 0.5em;
+
+            --bg-color-light: rgb(225, 225, 225);
+            --color-primary: rgb(200, 200, 200);
+            --color-dark: rgb(50, 50, 50);
         }
 
         .slider-bar {
@@ -21,7 +26,7 @@ const styles = html `
             position: relative;
             width: 100%;
             height: 50%;
-            background-color: var(--bg-color-light);
+            background-color: var(--ue-bg-color);
             touch-action: none;
             display: flex;
             align-items: center;
@@ -32,9 +37,9 @@ const styles = html `
             width: 0.8em;
             height: 300%;
             transform: translate(-50%, 0);
-            background-color: var(--color-primary);
-            border: 1px solid var(--color-dark);
-            border-radius: 2px;
+            background-color: var(--ue-color);
+            border: var(--ue-border);
+            border-radius: var(--ue-border-radius);
             position: relative;
         }
     </style>

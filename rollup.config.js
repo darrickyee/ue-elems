@@ -8,6 +8,11 @@ export default [
         plugins: [resolve()]
     },
     {
+        input: './src/core.js',
+        output: { file: 'demo.js', format: 'iife', name: 'UE_ELEMS' },
+        plugins: [resolve()]
+    },
+    {
         input: './src/core.d.ts',
         output: { file: 'index.d.ts', format: 'module' },
         plugins: [dts()]

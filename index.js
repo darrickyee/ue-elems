@@ -82,6 +82,18 @@ const isCEPolyfill = typeof window !== 'undefined' &&
     window.customElements.polyfillWrapFlushCallback !==
         undefined;
 /**
+ * Reparents nodes, starting from `start` (inclusive) to `end` (exclusive),
+ * into another container (could be the same container), before `before`. If
+ * `before` is null, it appends the nodes to the container.
+ */
+const reparentNodes = (container, start, end = null, before = null) => {
+    while (start !== end) {
+        const n = start.nextSibling;
+        container.insertBefore(start, before);
+        start = n;
+    }
+};
+/**
  * Removes nodes, starting from `start` (inclusive) to `end` (exclusive), from
  * `container`.
  */
@@ -547,6 +559,26 @@ class TemplateResult {
     getTemplateElement() {
         const template = document.createElement('template');
         template.innerHTML = this.getHTML();
+        return template;
+    }
+}
+/**
+ * A TemplateResult for SVG fragments.
+ *
+ * This class wraps HTML in an `<svg>` tag in order to parse its contents in the
+ * SVG namespace, then modifies the template to remove the `<svg>` tag so that
+ * clones only container the original fragment.
+ */
+class SVGTemplateResult extends TemplateResult {
+    getHTML() {
+        return `<svg>${super.getHTML()}</svg>`;
+    }
+    getTemplateElement() {
+        const template = super.getTemplateElement();
+        const content = template.content;
+        const svgElement = content.firstChild;
+        content.removeChild(svgElement);
+        reparentNodes(content, svgElement.firstChild);
         return template;
     }
 }
@@ -1160,6 +1192,11 @@ if (typeof window !== 'undefined') {
  * render to and update a container.
  */
 const html = (strings, ...values) => new TemplateResult(strings, values, 'html', defaultTemplateProcessor);
+/**
+ * Interprets a template literal as an SVG template that can efficiently
+ * render to and update a container.
+ */
+const svg = (strings, ...values) => new SVGTemplateResult(strings, values, 'svg', defaultTemplateProcessor);
 
 /**
  * @license
@@ -1258,6 +1295,83 @@ const classMap = directive((classInfo) => (part) => {
     }
     if (typeof classList.commit === 'function') {
         classList.commit();
+    }
+});
+
+/**
+ * @license
+ * Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
+/**
+ * Stores the StyleInfo object applied to a given AttributePart.
+ * Used to unset existing values when a new StyleInfo object is applied.
+ */
+const previousStylePropertyCache = new WeakMap();
+/**
+ * A directive that applies CSS properties to an element.
+ *
+ * `styleMap` can only be used in the `style` attribute and must be the only
+ * expression in the attribute. It takes the property names in the `styleInfo`
+ * object and adds the property values as CSS properties. Property names with
+ * dashes (`-`) are assumed to be valid CSS property names and set on the
+ * element's style object using `setProperty()`. Names without dashes are
+ * assumed to be camelCased JavaScript property names and set on the element's
+ * style object using property assignment, allowing the style object to
+ * translate JavaScript-style names to CSS property names.
+ *
+ * For example `styleMap({backgroundColor: 'red', 'border-top': '5px', '--size':
+ * '0'})` sets the `background-color`, `border-top` and `--size` properties.
+ *
+ * @param styleInfo {StyleInfo}
+ */
+const styleMap = directive((styleInfo) => (part) => {
+    if (!(part instanceof AttributePart) || (part instanceof PropertyPart) ||
+        part.committer.name !== 'style' || part.committer.parts.length > 1) {
+        throw new Error('The `styleMap` directive must be used in the style attribute ' +
+            'and must be the only part in the attribute.');
+    }
+    const { committer } = part;
+    const { style } = committer.element;
+    let previousStyleProperties = previousStylePropertyCache.get(part);
+    if (previousStyleProperties === undefined) {
+        // Write static styles once
+        style.cssText = committer.strings.join(' ');
+        previousStylePropertyCache.set(part, previousStyleProperties = new Set());
+    }
+    // Remove old properties that no longer exist in styleInfo
+    // We use forEach() instead of for-of so that re don't require down-level
+    // iteration.
+    previousStyleProperties.forEach((name) => {
+        if (!(name in styleInfo)) {
+            previousStyleProperties.delete(name);
+            if (name.indexOf('-') === -1) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                style[name] = null;
+            }
+            else {
+                style.removeProperty(name);
+            }
+        }
+    });
+    // Add or update properties
+    for (const name in styleInfo) {
+        previousStyleProperties.add(name);
+        if (name.indexOf('-') === -1) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            style[name] = styleInfo[name];
+        }
+        else {
+            style.setProperty(name, styleInfo[name]);
+        }
     }
 });
 
@@ -1815,6 +1929,49 @@ function define() {
   return defineElement.apply(void 0, arguments);
 }
 
+function walk(node, fn, options) {
+  var items = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
+  Array.from(node.children).forEach(function (child) {
+    var hybrids = child.constructor.hybrids;
+
+    if (hybrids && fn(hybrids)) {
+      items.push(child);
+
+      if (options.deep && options.nested) {
+        walk(child, fn, options, items);
+      }
+    } else if (options.deep) {
+      walk(child, fn, options, items);
+    }
+  });
+  return items;
+}
+
+function children(hybridsOrFn) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+    deep: false,
+    nested: false
+  };
+  var fn = typeof hybridsOrFn === "function" ? hybridsOrFn : function (hybrids) {
+    return hybrids === hybridsOrFn;
+  };
+  return {
+    get: function get(host) {
+      return walk(host, fn, options);
+    },
+    connect: function connect(host, key, invalidate) {
+      var observer = new MutationObserver(invalidate);
+      observer.observe(host, {
+        childList: true,
+        subtree: !!options.deep
+      });
+      return function () {
+        observer.disconnect();
+      };
+    }
+  };
+}
+
 var map = new WeakMap();
 var dataMap = {
   get: function get(key, defaultValue) {
@@ -2064,13 +2221,13 @@ function resolveClassList(host, target, value) {
 }
 
 function _typeof$6(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$6 = function _typeof(obj) { return typeof obj; }; } else { _typeof$6 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$6(obj); }
-var styleMap = new WeakMap();
+var styleMap$1 = new WeakMap();
 function resolveStyle(host, target, value) {
   if (value === null || _typeof$6(value) !== "object") {
     throw TypeError("Style value must be an object in ".concat(stringifyElement(target), ":"), value);
   }
 
-  var previousMap = styleMap.get(target) || new Map();
+  var previousMap = styleMap$1.get(target) || new Map();
   var nextMap = Object.keys(value).reduce(function (map, key) {
     var dashKey = camelToDash(key);
     var styleValue = value[key];
@@ -2088,7 +2245,7 @@ function resolveStyle(host, target, value) {
   previousMap.forEach(function (styleValue, key) {
     target.style[key] = "";
   });
-  styleMap.set(target, nextMap);
+  styleMap$1.set(target, nextMap);
 }
 
 function resolveProperty(attrName, propertyName, isSVG) {
@@ -2575,7 +2732,7 @@ function html$1(parts) {
 
   return create(parts, args);
 }
-function svg(parts) {
+function svg$1(parts) {
   for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
     args[_key3 - 1] = arguments[_key3];
   }
@@ -2583,61 +2740,29 @@ function svg(parts) {
   return create(parts, args, true);
 }
 Object.assign(html$1, helpers);
-Object.assign(svg, helpers);
+Object.assign(svg$1, helpers);
 
-const styles = html `
-    <style>
-        :host {
-            display: grid;
-        }
-
-        .grid-1 {
-            grid-column: 1;
-            grid-row: 1;
-        }
-
-        .bg {
-            -webkit-text-stroke-width: var(--text-outline-width);
-            -webkit-text-stroke-color: black;
-        }
-
-        .fg {
-            color: var(--text-color);
-        }
-
-        div {
-            user-select: none;
-            cursor: default;
-        }
-    </style>
-`;
-const observers = new WeakMap();
-const properties = {
-    slotHTML: {
-        get: host => host.innerHTML,
-        connect: (host, key, invalidate) => {
-            // Create observer if it doesn't exist
-            const observer = observers.get(host) || new MutationObserver(invalidate);
-            observers.set(host, observer);
-            observer.observe(host, { characterData: true, childList: true, subtree: true });
-        }
-    }
-};
-const template = host => html `
-    ${styles}
-    <div class="grid-1 bg" .innerHTML=${host.slotHTML}></div>
-    <div class="grid-1 fg" .innerHTML=${host.slotHTML}></div>
-`;
-const UeText = define('ue-text', Object.assign(Object.assign({}, properties), { render: lit(template) }));
-
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+/**
+ * Adds an event listener to `target` and returns the associated `removeEventListener` function.
+ *
+ * @example
+ *
+ * // Add listener to document
+ * const unlisten = listen(document, 'click', () => console.log('clicked'))
+ *
+ * // Remove listener
+ * unlisten();
+ *
+ * @param target EventTarget to which the listener will be added.
+ * @param type Passed to `addEventListener`.
+ * @param listener Passed to `addEventListener`.
+ * @param options Passed to `addEventListener`.
+ *
+ * @returns Function that removes the listener when called.
+ */
+const listen = (target, type, listener, options) => {
+    target.addEventListener(type, listener, options);
+    return () => target.removeEventListener(type, listener, options);
 };
 const select = (selector, context = document) => context ? context.querySelector(selector) : null;
 function nextframe() {
@@ -2667,21 +2792,19 @@ function eventPromise(eventType, target = document, reject = false) {
         target.addEventListener(eventType, reject ? rej : res, { once: true });
     });
 }
-function repeatUntil(callback, eventType, delay = 500) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const cancel = eventPromise(eventType, document, true);
-        yield Promise.race([timeout(delay), cancel]).catch(() => {
-            return;
-        });
-        let isHeld = true;
-        while (isHeld) {
-            yield Promise.race([nextframe(), cancel])
-                .then(callback)
-                .catch(() => {
-                isHeld = false;
-            });
-        }
+async function repeatUntil(callback, eventType, delay = 500) {
+    const cancel = eventPromise(eventType, document, true);
+    await Promise.race([timeout(delay), cancel]).catch(() => {
+        return;
     });
+    let isHeld = true;
+    while (isHeld) {
+        await Promise.race([nextframe(), cancel])
+            .then(callback)
+            .catch(() => {
+            isHeld = false;
+        });
+    }
 }
 /**
  * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `timeout` milliseconds and rejects otherwise.
@@ -2724,6 +2847,69 @@ const roundTo = curry((step, value) => {
 });
 const remap = curry((fromStart, fromEnd, toStart, toEnd) => pipe(invlerp(fromStart, fromEnd), lerp(toStart, toEnd)));
 
+const reflectStr = (attrName, defaultValue) => ({
+    get: host => host.getAttribute(attrName) || defaultValue,
+    set: (host, value) => {
+        host.setAttribute(attrName, value);
+        return value;
+    },
+    connect: (host, key, invalidate) => {
+        const obs = new MutationObserver(invalidate);
+        obs.observe(host, { attributeFilter: [attrName] });
+    }
+});
+const reflectNum = (attrName, defaultValue) => (Object.assign(Object.assign({}, reflectStr(attrName, defaultValue)), { get: host => parseFloat(host.getAttribute(attrName)) || defaultValue }));
+const reflectBool = (attrName, defaultValue) => (Object.assign(Object.assign({}, reflectStr(attrName, defaultValue)), { get: host => host.hasAttribute(attrName) || defaultValue, set: (host, value) => {
+        if (value)
+            host.setAttribute(attrName, '');
+        else
+            host.removeAttribute(attrName);
+        return !!value;
+    } }));
+const mappers = {
+    boolean: reflectBool,
+    number: reflectNum,
+    string: reflectStr
+};
+const reflect = (attrName, defaultValue) => attrName && mappers[typeof defaultValue]
+    ? mappers[typeof defaultValue](attrName, defaultValue)
+    : property(defaultValue);
+
+// Cartesian product w/ self
+const AxA = (arr) => [].concat(...arr.map(i => arr.map(j => [i, j])));
+const range = (s, e) => Array.from('0'.repeat(e - s), (_, i) => s + i);
+const coords = i => AxA(range(-i, i + 1));
+const shadowStyle = host => {
+    const { lineWidth } = host;
+    const w = isNaN(parseInt(lineWidth)) ? 1 : Math.max(parseInt(lineWidth), 0);
+    const suffix = ' var(--ue-border-blur, 0px) var(--ue-border-color, black)';
+    return coords(w)
+        .map(xy => xy.map(i => i + 'px').join(' '))
+        .map(s => s + ` ${suffix}`)
+        .join(', ');
+};
+const styles = html `
+    <style>
+        :host {
+            display: block;
+            color: var(--ue-color);
+        }
+
+        ::slotted(*) {
+            user-select: none;
+            cursor: default;
+        }
+    </style>
+`;
+const properties = {
+    lineWidth: reflect('line-width', 1)
+};
+const template = host => html `
+    ${styles}
+    <div style="text-shadow: ${shadowStyle(host)};"><slot></slot></div>
+`;
+const UeText = define('ue-text', Object.assign(Object.assign({}, properties), { render: lit(template) }));
+
 /********** Utility functions **********/
 const handleEvent = curry((host, { type }) => {
     switch (type) {
@@ -2734,17 +2920,15 @@ const handleEvent = curry((host, { type }) => {
             host.focused = host.active = false;
             break;
         case 'mousedown':
-            host.active = host.clickable ? true : false;
+            host.active = true;
             break;
         case 'mouseup':
-            if (host.clickable) {
-                host.active = false;
-                host.checked = host.checkable ? !host.checked : false;
-            }
+            host.active = false;
+            host.checked = host.checkable ? !host.checked : false;
             break;
     }
 });
-const styles$1 = html `
+const styles$1 = host => html `
     <style>
         :host {
             display: flex;
@@ -2752,106 +2936,92 @@ const styles$1 = html `
             padding: 2px;
             align-items: stretch;
             outline: none;
-            /* overflow: hidden; */
-            width: var(--btn-width);
-            height: var(--btn-height);
-
-            font-size: var(--btn-font-size);
-            font-family: var(--btn-font-family);
+            width: var(--ue-btn-width);
+            height: var(--ue-btn-height);
+            pointer-events: ${host.disabled ? 'none' : ''};
         }
 
         ::slotted(*) {
             user-select: none;
-            pointer-events: none;
+            max-height: -webkit-fill-available;
+            max-width: -webkit-fill-available;
         }
 
         div {
             /* Fixed values */
             display: flex;
+            flex-direction: column;
             padding: 5px;
             flex-grow: 1;
             flex-shrink: inherit;
 
             align-items: center;
-            align-content: center;
+            justify-content: center;
             outline: none;
 
-            /* Set from main css */
+            color: var(--ue-color);
+            background-color: var(--ue-bg-color);
+            border: var(--ue-border);
+            border-radius: var(--ue-border-radius);
 
-            border-radius: var(--btn-border-radius);
-            justify-content: var(--btn-justify-content);
-
-            color: var(--btn-text-color);
-            background-color: var(--btn-bg-color);
-            border: var(--btn-border);
-
-            transition: background-color 0.2s, color 0.2s, transform 0.2s, border 0.2s;
+            transition: var(--ue-transition);
         }
 
         .focused {
-            color: var(--btn-focus-color);
-            background-color: var(--btn-focus-bg-color);
-            border: var(--btn-focus-border);
-            transform: var(--btn-focus-transform);
-            transition: var(--btn-focus-transition);
+            --ue-color: var(--ue-focus-color);
+            --ue-bg-color: var(--ue-focus-bg-color);
+            --ue-border: var(--ue-focus-border);
+
+            transition: var(--ue-transition);
         }
 
         .active {
-            color: var(--btn-click-color);
-            background-color: var(--btn-click-bg-color);
-            border: var(--btn-click-border);
-            transform: var(--btn-click-transform);
-            transition: var(--btn-click-transition);
+            --ue-color: var(--ue-active-color);
+            --ue-bg-color: var(--ue-active-bg-color);
+            --ue-border: var(--ue-active-border);
+
+            transition: var(--ue-transition);
         }
 
         .disabled {
-            color: #888;
-            background-color: #444;
-            border-color: #888;
+            --ue-color: #888;
+            --ue-bg-color: #444;
+            --ue-border: #888;
             pointer-events: none;
         }
 
         .checked {
-            color: var(--btn-click-color);
-            background-color: var(--btn-click-bg-color);
-            border: var(--btn-click-border);
+            --ue-color: var(--ue-active-color);
+            --ue-bg-color: var(--ue-active-bg-color);
+            --ue-border: var(--ue-active-border);
         }
     </style>
 `;
-const reflectBool = (name, defaultValue = true) => ({
-    get: host => host.hasAttribute(name),
-    set: (host, value) => {
-        if (value)
-            host.setAttribute(name, '');
-        else
-            host.removeAttribute(name);
-        return !!value;
-    },
-    connect: (host, key, invalidate) => {
-        host[key] = defaultValue;
-        const obs = new MutationObserver(invalidate);
-        obs.observe(host, { attributeFilter: [key] });
-        return obs.disconnect;
-    }
-});
 const properties$1 = {
-    active: false,
+    active: reflect('active', false),
     checkable: false,
-    checked: false,
-    clickable: true,
-    disabled: false,
-    focused: false
+    checked: reflect('checked', false),
+    disabled: reflect('disabled', false),
+    focused: reflect('focused', false)
 };
-Object.keys(properties$1).forEach(k => (properties$1[k] = reflectBool(k, properties$1[k])));
+function focusMe() {
+    if (this && this.focus)
+        this.focus();
+}
+function blurMe() {
+    if (this && this.blur)
+        this.blur();
+}
+// Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
 const template$1 = host => {
     const { active, checked, disabled, focused } = host;
     return html `
-        ${styles$1}
+        ${styles$1(host)}
         <div
             tabindex="0"
             class=${classMap({ active, checked, disabled, focused })}
-            @mouseover=${e => e.target.focus()}
-            @mouseleave=${e => e.target.blur()}
+            @mouseover=${focusMe}
+            @mouseleave=${blurMe}
             @mousedown=${handleEvent(host)}
             @mouseup=${handleEvent(host)}
             @focus=${handleEvent(host)}
@@ -2863,9 +3033,234 @@ const template$1 = host => {
 };
 const UeButton = define('ue-button', Object.assign(Object.assign({}, properties$1), { render: lit(template$1) }));
 
-const e=function(e){const t=e._SHFTJS||{};return ["drags","drops"].forEach(e=>{t[e]||(t[e]=new WeakMap);}),e._SHFTJS=t}(global),t=["bubbles","cancelable","composed","detail","view","altKey","ctrlKey","metaKey","shiftKey","button","buttons","clientX","clientY","movementX","movementY","relatedTarget","screenX","screenY"];function n(e,n={}){const o={};return t.forEach(t=>{o[t]=e[t];}),Object.assign(o,n)}function o(e,t,n={}){const o=new MouseEvent(t,n);return o.shftTarget=e,e.dispatchEvent(o),o}const{drags:r,drops:a}=e;function s(e,t=0,n=1){return Math.max(t,Math.min(e,n))}function d(e,t){return !t||("string"==typeof t&&(t=[t]),t instanceof Array&&t.some(t=>e.matches(t)))}function c(t,n){const{drags:o,drops:r}=e;switch(n){case"drag":case"draggable":return o.has(t);case"drop":case"droppable":return r.has(t);default:return o.has(t)||r.has(t)}}function u(e,t){const{accepts:n,overlap:o}=a.get(e);return d(t,n)&&function(e,t){const{left:n,right:o,top:r,bottom:a,height:d,width:c}=e.getBoundingClientRect(),{left:u,right:i,top:g,bottom:m}=t.getBoundingClientRect();return s(Math.min(o,i)-Math.max(n,u),0,c)*s(Math.min(a,m)-Math.max(r,g),0,d)/(c*d)}(t,e)>o}const{drags:i}=e;function g(e){return t=>{const{onmousemove:r,onmouseup:a}=i.get(e);1===t.buttons&&(o(e,"dragstart",n(t)),document.addEventListener("mousemove",r),document.addEventListener("mouseup",a,{once:!0}));}}function m(e){return t=>{o(e,"drag",n(t));}}function l(e){return t=>{const{onmousemove:r}=i.get(e);o(e,"dragend",n(t)),document.removeEventListener("mousemove",r);}}const{drops:v}=e;function p(e){return t=>{if(!v.has(e))return;const n=t.shftTarget,{accepts:r,ondrag:a,ondragend:s}=v.get(e);d(n,r)&&(o(e,"dropopen",{relatedTarget:n}),n.addEventListener("drag",a),n.addEventListener("dragend",s,{once:!0}));}}function f(e){return t=>{const r=t.shftTarget,{accepts:a,content:s}=v.get(e);d(r,a)&&(u(e,r)?(s.has(r)||(s.add(r),o(e,"dragenter",n(t,{relatedTarget:r}))),o(e,"dragover",n(t,{relatedTarget:r}))):s.has(r)&&(s.delete(r),o(e,"dragleave",n(t,{relatedTarget:r}))));}}function h(e){return t=>{const r=t.shftTarget,{ondrag:a}=v.get(e);o(e,"dropclose",n(t,{relatedTarget:r})),r.removeEventListener("drag",a),u(e,r)&&o(e,"drop",n(t,{relatedTarget:r}));}}var E={drag:function(e){if(c(e,"drag"))return;const t={onmousedown:g(e),onmousemove:m(e),onmouseup:l(e)};e.addEventListener("mousedown",t.onmousedown),i.set(e,t);},drop:function(e,t){if(c(e,"drop"))return;const{accepts:n,overlap:o}=Object.assign({accepts:null,overlap:.5},t||{}),r={content:new WeakSet,ondragstart:p(e),ondrag:f(e),ondragend:h(e),accepts:n,overlap:o};document.addEventListener("dragstart",r.ondragstart),v.set(e,r);},util:{clear:function(t){const{drags:n,drops:o}=e;if(n.has(t)){const{onmousedown:e,onmousemove:o,onmouseup:r}=n.get(t);t.removeEventListener("mousedown",e),document.removeEventListener("mousemove",o),document.removeEventListener("mouseup",r);}if(o.has(t)){const{ondragstart:e,ondrag:n,ondragend:r}=o.get(t);document.removeEventListener("dragstart",e),document.removeEventListener("drag",n),document.removeEventListener("dragend",r);}},defaultmove:function(e){const t=e.target;["absolute","relative"].some(e=>e===t.style.position)||(t.style.position="relative"),["left","top"].forEach(n=>{let o=parseFloat(t.style[n])||0;o+="left"===n?e.movementX:e.movementY,t.style[n]=`${o}px`;});},is:c,matches:d},_GLOBAL:e};
+const _GLOBAL = (function _init(obj) {
+    const data = obj._SHFTJS || {};
+    ['drags', 'drops'].forEach(type => {
+        if (!data[type])
+            data[type] = new WeakMap();
+    });
+    return (obj._SHFTJS = data);
+})(window);
+const EVENTINIT_KEYS = [
+    /* EventInit */
+    'bubbles',
+    'cancelable',
+    'composed',
+    /* UiEventInit */
+    'detail',
+    'view',
+    /* EventModifierInit */
+    'altKey',
+    'ctrlKey',
+    'metaKey',
+    'shiftKey',
+    /* MouseEventInit */
+    'button',
+    'buttons',
+    'clientX',
+    'clientY',
+    'movementX',
+    'movementY',
+    'relatedTarget',
+    'screenX',
+    'screenY'
+];
+/**
+ * Copies and returns `MouseEventInit` properties from an existing `MouseEvent`.
+ * @param e
+ * @param overrides
+ */
+function eventInit(e, overrides = {}) {
+    const init = {};
+    EVENTINIT_KEYS.forEach(key => {
+        init[key] = e[key];
+    });
+    return Object.assign(init, overrides);
+}
+/**
+ * Constructs and dispatches a custom `MouseEvent` with property `shftTarget` set to `element`.
+ * @param element
+ * @param typeArg
+ * @param options
+ * @returns The constructed event.
+ */
+function dispatch$2(element, typeArg, options = {}) {
+    const ev = new MouseEvent(typeArg, options);
+    ev.shftTarget = element;
+    element.dispatchEvent(ev);
+    return ev;
+}
 
-const { drag } = E;
+const { drags, drops } = _GLOBAL;
+function clamp$1(value, min = 0, max = 1) {
+    return Math.max(min, Math.min(value, max));
+}
+function matches(el, selectors) {
+    if (!selectors)
+        return true;
+    if (typeof selectors === 'string')
+        selectors = [selectors];
+    if (!(selectors instanceof Array))
+        return false;
+    return selectors.some(selector => el.matches(selector));
+}
+function overlapPct(el, other) {
+    const { left: l, right: r, top: t, bottom: b, height: h, width: w } = el.getBoundingClientRect();
+    const { left: otherL, right: otherR, top: otherT, bottom: otherB } = other.getBoundingClientRect();
+    const overlapW = clamp$1(Math.min(r, otherR) - Math.max(l, otherL), 0, w);
+    const overlapH = clamp$1(Math.min(b, otherB) - Math.max(t, otherT), 0, h);
+    return (overlapW * overlapH) / (w * h);
+}
+function is(el, type) {
+    const { drags, drops } = _GLOBAL;
+    switch (type) {
+        case 'drag':
+        case 'draggable':
+            return drags.has(el);
+        case 'drop':
+        case 'droppable':
+            return drops.has(el);
+        default:
+            return drags.has(el) || drops.has(el);
+    }
+}
+function clear(el) {
+    const { drags, drops } = _GLOBAL;
+    if (drags.has(el)) {
+        const { onmousedown, onmousemove, onmouseup } = drags.get(el);
+        el.removeEventListener('mousedown', onmousedown);
+        document.removeEventListener('mousemove', onmousemove);
+        document.removeEventListener('mouseup', onmouseup);
+    }
+    if (drops.has(el)) {
+        const { ondragstart, ondrag, ondragend } = drops.get(el);
+        document.removeEventListener('dragstart', ondragstart);
+        document.removeEventListener('drag', ondrag);
+        document.removeEventListener('dragend', ondragend);
+    }
+}
+function canDrop(droppable, dragged) {
+    const { accepts, overlap } = drops.get(droppable);
+    return (matches(dragged, accepts) && overlapPct(dragged, droppable) > overlap);
+}
+
+const { drags: drags$1 } = _GLOBAL;
+function drag(el) {
+    if (is(el, 'drag'))
+        return;
+    const data = {
+        onmousedown: _mousedownFn(el),
+        onmousemove: _mousemoveFn(el),
+        onmouseup: _mouseupFn(el)
+    };
+    el.addEventListener('mousedown', data.onmousedown);
+    drags$1.set(el, data);
+}
+function _mousedownFn(el) {
+    return (e) => {
+        const { onmousemove, onmouseup } = drags$1.get(el);
+        if (e.buttons === 1) {
+            dispatch$2(el, 'dragstart', eventInit(e));
+            document.addEventListener('mousemove', onmousemove);
+            document.addEventListener('mouseup', onmouseup, {
+                once: true
+            });
+        }
+    };
+}
+function _mousemoveFn(el) {
+    return (e) => {
+        dispatch$2(el, 'drag', eventInit(e));
+    };
+}
+function _mouseupFn(el) {
+    return (e) => {
+        const { onmousemove } = drags$1.get(el);
+        dispatch$2(el, 'dragend', eventInit(e));
+        document.removeEventListener('mousemove', onmousemove);
+    };
+}
+
+const { drops: drops$1 } = _GLOBAL;
+function drop(el, options) {
+    if (is(el, 'drop'))
+        return;
+    const { accepts, overlap } = Object.assign({ accepts: null, overlap: 0.5 }, options || {});
+    const data = {
+        content: new WeakSet(),
+        ondragstart: _dragstartFn(el),
+        ondrag: _dragFn(el),
+        ondragend: _dragendFn(el),
+        accepts,
+        overlap
+    };
+    document.addEventListener('dragstart', data.ondragstart);
+    drops$1.set(el, data);
+}
+function _dragstartFn(el) {
+    return (e) => {
+        if (!drops$1.has(el))
+            return;
+        const dragged = e.shftTarget;
+        const { accepts, ondrag, ondragend } = drops$1.get(el);
+        if (matches(dragged, accepts)) {
+            dispatch$2(el, 'dropopen', { relatedTarget: dragged });
+            dragged.addEventListener('drag', ondrag);
+            dragged.addEventListener('dragend', ondragend, { once: true });
+        }
+    };
+}
+function _dragFn(el) {
+    return (e) => {
+        const dragged = e.shftTarget;
+        const { accepts, content } = drops$1.get(el);
+        if (matches(dragged, accepts)) {
+            if (canDrop(el, dragged)) {
+                if (!content.has(dragged)) {
+                    content.add(dragged);
+                    dispatch$2(el, 'dragenter', eventInit(e, { relatedTarget: dragged }));
+                }
+                dispatch$2(el, 'dragover', eventInit(e, { relatedTarget: dragged }));
+            }
+            else {
+                if (content.has(dragged)) {
+                    content.delete(dragged);
+                    dispatch$2(el, 'dragleave', eventInit(e, { relatedTarget: dragged }));
+                }
+            }
+        }
+    };
+}
+function _dragendFn(el) {
+    return (e) => {
+        const dragged = e.shftTarget;
+        const { ondrag } = drops$1.get(el);
+        dispatch$2(el, 'dropclose', eventInit(e, { relatedTarget: dragged }));
+        dragged.removeEventListener('drag', ondrag);
+        if (canDrop(el, dragged)) {
+            dispatch$2(el, 'drop', eventInit(e, { relatedTarget: dragged }));
+        }
+    };
+}
+
+function defaultmove(e) {
+    const el = e.target;
+    if (!['absolute', 'relative'].some(pos => pos === el.style.position))
+        el.style.position = 'relative';
+    ['left', 'top'].forEach(axis => {
+        let pos = parseFloat(el.style[axis]) || 0;
+        pos += axis === 'left' ? e.movementX : e.movementY;
+        el.style[axis] = `${pos}px`;
+    });
+}
+var shft = {
+    drag,
+    drop,
+    util: { clear, defaultmove, is, matches },
+    _GLOBAL
+};
+
+const { drag: drag$1 } = shft;
 /********** Utility functions **********/
 const posToVal = ({ min = 0, max = 100, step = 1, clientWidth: width = 100 }) => pipe(remap(0, width)(min, max), clamp(min, max), roundTo(step));
 const increment = curry((host, pos) => posToVal(host)(pos) < host.value ? -host.step : posToVal(host)(pos) > host.value ? host.step : 0);
@@ -2877,6 +3272,11 @@ const styles$2 = html `
             justify-content: center;
             height: 1em;
             cursor: default;
+            padding: 0.5em;
+
+            --bg-color-light: rgb(225, 225, 225);
+            --color-primary: rgb(200, 200, 200);
+            --color-dark: rgb(50, 50, 50);
         }
 
         .slider-bar {
@@ -2884,7 +3284,7 @@ const styles$2 = html `
             position: relative;
             width: 100%;
             height: 50%;
-            background-color: var(--bg-color-light);
+            background-color: var(--ue-bg-color);
             touch-action: none;
             display: flex;
             align-items: center;
@@ -2895,9 +3295,9 @@ const styles$2 = html `
             width: 0.8em;
             height: 300%;
             transform: translate(-50%, 0);
-            background-color: var(--color-primary);
-            border: 1px solid var(--color-dark);
-            border-radius: 2px;
+            background-color: var(--ue-color);
+            border: var(--ue-border);
+            border-radius: var(--ue-border-radius);
             position: relative;
         }
     </style>
@@ -2945,59 +3345,405 @@ const template$2 = host => {
         </div>
         ${once(() => {
         findElement('.handle', host.shadowRoot)
-            .then(drag)
+            .then(drag$1)
             .catch(console.log);
     })}
     `;
 };
 const UeSlider = define('ue-slider', Object.assign(Object.assign({}, properties$2), { render: lit(template$2) }));
 
-const sizes = {
-    small: 32,
-    medium: 64,
-    large: 96,
-    xlarge: 128
+// Arrow
+const arrow = svg `
+    <svg
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        viewBox="0 0 491.996 491.996"
+        xml:space="preserve"
+    >
+    <path d="M484.132,124.986l-16.116-16.228c-5.072-5.068-11.82-7.86-19.032-7.86c-7.208,0-13.964,2.792-19.036,7.86l-183.84,183.848
+			L62.056,108.554c-5.064-5.068-11.82-7.856-19.028-7.856s-13.968,2.788-19.036,7.856l-16.12,16.128
+			c-10.496,10.488-10.496,27.572,0,38.06l219.136,219.924c5.064,5.064,11.812,8.632,19.084,8.632h0.084
+			c7.212,0,13.96-3.572,19.024-8.632l218.932-219.328c5.072-5.064,7.856-12.016,7.864-19.224
+			C491.996,136.902,489.204,130.046,484.132,124.986z"/>
+    </svg>
+`;
+const shapes = {
+    arrow
 };
-function getSize(size) {
-    return parseFloat(size) || sizes[size];
-}
-const styles$3 = host => {
-    return html `
-        <style>
-            :host {
-                width: ${getSize(host.size) || 64}px;
-                height: ${getSize(host.size) || 64}px;
-            }
-            #bg {
-                background-color: var(--color-secondary);
-                width: inherit;
-                height: inherit;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                clip-path: circle(${getSize(host.size) / 2}px);
-            }
-            #fg {
-                background-color: var(--color-primary);
-                width: inherit;
-                height: inherit;
-                clip-path: circle(${getSize(host.size) / 2 - host.border}px);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        </style>
-    `;
-};
-const properties$3 = { border: 8, shape: 'circle', size: 'medium' };
+const styles$3 = html `
+    <style>
+        :host {
+            display: block;
+            background-color: transparent;
+            fill: var(--ue-color);
+            position: relative;
+            height: 1em;
+            width: 1em;
+        }
+
+        svg {
+            height: inherit;
+            width: inherit;
+            position: absolute;
+        }
+    </style>
+`;
+const properties$3 = { shape: 'arrow' };
 const template$3 = host => html `
-        ${styles$3(host)}
-        <div id="bg">
-            <div id="fg">
-                <slot></slot>
-            </div>
-        </div>
+        ${styles$3} ${shapes[host.shape]}
     `;
 const UeIcon = define('ue-icon', Object.assign(Object.assign({}, properties$3), { render: lit(template$3) }));
 
-export { UeButton, UeIcon, UeSlider, UeText };
+const BaseItem = {
+    active: true,
+    selected: true
+};
+const ListItem = Object.assign(Object.assign({}, BaseItem), { label: ({ innerText }) => innerText, render: lit(() => html `
+                <slot></slot>
+            `) });
+const ContentItem = Object.assign(Object.assign({}, BaseItem), { label: reflect('label', ''), render: lit(({ selected }) => html `
+            <style>
+                :host {
+                    flex-grow: ${selected ? 1 : 0};
+                }
+            </style>
+            ${selected
+        ? html `
+                      <slot></slot>
+                  `
+        : html ``}
+        `) });
+const UeListItem = define('ue-list-item', ListItem);
+const UeContentItem = define('ue-content-item', ContentItem);
+
+const hasProps = curry((propList, hybrid) => propList.every(hybrid.hasOwnProperty, hybrid));
+const singleSelect = {
+    get: ({ items }, lastValue) => items.map(item => item.selected).indexOf(true),
+    set: ({ items }, value) => items.map((item, index) => (item.selected = index === value)).indexOf(true),
+    connect: (host, key) => {
+        host[key] = host.preselect || 0;
+    },
+    observe: (host, selected) => {
+        const { items } = host;
+        if (items[selected])
+            dispatch(host, 'select', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    index: selected,
+                    label: items[selected].label,
+                    item: items[selected]
+                }
+            });
+    }
+};
+const BaseGroup = {
+    items: children(hasProps(['label', 'selected']))
+};
+const SingleSelectGroup = Object.assign(Object.assign({}, BaseGroup), { preselect: reflect('preselect', 0), selected: singleSelect, selectedItem: ({ items }) => items.find(item => item.selected) });
+const itemList = curry((itemTemplate, host) => html `
+            ${host.items.map(itemTemplate(host))}
+        `);
+const buttonItemTemplate = host => ({ selected, label }, index) => html `
+    <ue-button
+        .checked=${selected}
+        @click=${() => {
+    host.selected = index;
+}}
+        style="pointer-events: ${selected ? 'none' : 'inherit'}"
+    >
+        <slot name="item-label-${index}">${label}</slot>
+    </ue-button>
+`;
+const buttonList = itemList(buttonItemTemplate);
+
+const properties$4 = Object.assign(Object.assign({}, SingleSelectGroup), { location: reflect('location', 'left'), direction: host => (['left', 'right'].includes(host.location) ? 'column' : 'row') });
+const styles$4 = html `
+    <style>
+        :host {
+            display: block;
+        }
+
+        ue-button {
+            padding: 0;
+        }
+
+        div {
+            display: flex;
+        }
+
+        .left {
+            flex-direction: row;
+        }
+
+        .right {
+            flex-direction: row-reverse;
+        }
+
+        .top {
+            flex-direction: column;
+        }
+
+        .bottom {
+            flex-direction: column-reverse;
+        }
+    </style>
+`;
+const template$4 = host => html `
+        ${styles$4}
+        <div class=${classMap({ [host.location]: true })}>
+            <div style="flex-direction: ${host.direction};">${buttonList(host)}</div>
+            <slot></slot>
+        </div>
+    `;
+const UeTabGroup = define('ue-tab-group', Object.assign(Object.assign({}, properties$4), { render: lit(template$4) }));
+
+const properties$5 = Object.assign(Object.assign({}, SingleSelectGroup), { expand: {
+        connect: (host, key) => {
+            host[key] = false;
+        },
+        observe: (host, value) => {
+            if (value)
+                return listen(document, 'click', () => {
+                    host.expand = false;
+                }, { once: true });
+        }
+    } });
+const styles$5 = html `
+    <style>
+        :host {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8em;
+        }
+
+        ue-button {
+            padding: 0;
+        }
+
+        ue-icon {
+            position: absolute;
+            height: 0.8em;
+            width: 0.8em;
+            right: 0.1em;
+        }
+
+        svg {
+            position: absolute;
+        }
+
+        .container {
+            position: relative;
+        }
+    </style>
+`;
+const closeStyle = {
+    border: '1px solid transparent'
+};
+const openStyle = {
+    border: '1px solid var(--ue-active-bg-color)'
+};
+const template$5 = host => {
+    const { expand, items, selectedItem } = host;
+    return html `
+        ${styles$5}
+        <div class="container" style=${styleMap(expand ? openStyle : closeStyle)}>
+            <ue-button
+                .checked=${expand}
+                @click=${() => {
+        host.expand = !expand;
+    }}
+                >${selectedItem ? selectedItem.label : ''}<ue-icon></ue-icon
+            ></ue-button>
+        </div>
+        <div class="container">
+            <ue-drawer .expand=${expand} direction="down">
+                <div style=${styleMap(expand ? openStyle : closeStyle)}>
+                    ${buttonList(host)}
+                </div>
+            </ue-drawer>
+        </div>
+    `;
+};
+const UeDropdown = define('ue-dropdown', Object.assign(Object.assign({}, properties$5), { render: lit(template$5) }));
+
+function show(host, event) {
+    if (!host.active) {
+        host.pos = [event.clientX, event.clientY];
+        host.active = true;
+    }
+}
+function hide(host, event) {
+    host.active = false;
+}
+const properties$6 = {
+    pos: [0, 0],
+    delay: 1,
+    active: {
+        connect: (host, key, invalidate) => {
+            const parent = host.parentElement;
+            if (parent) {
+                const stopshow = listen(parent, 'mouseover', e => show(host, e));
+                const stophide = listen(parent, 'mouseout', e => hide(host));
+                return () => {
+                    stopshow();
+                    stophide();
+                };
+            }
+        }
+    }
+};
+const template$6 = host => html `
+    <style>
+        div {
+            height: auto;
+            width: auto;
+            position: fixed;
+            border: 1px solid black;
+            background-color: var(--ue-bg-color);
+        }
+    </style>
+    ${host.active
+    ? html `
+              <div style="left: ${host.pos[0]}px; top: ${host.pos[1]}px">
+                  <slot></slot>
+              </div>
+          `
+    : html ``}
+`;
+const UeTooltip = define('ue-tooltip', Object.assign(Object.assign({}, properties$6), { render: lit(template$6) }));
+
+const properties$7 = {
+    value: {
+        get: (host, lastValue) => lastValue || 0,
+        set: (host, value, lastValue) => {
+            if (value !== lastValue)
+                dispatch(host, 'change');
+            if (value >= 100)
+                dispatch(host, 'full');
+            return value;
+        }
+    },
+    duration: 1,
+    delay: 0
+};
+const template$7 = host => {
+    const { value, duration, delay } = host;
+    return html `
+        <style>
+            :host {
+                display: flex;
+                font-size: 0.8em;
+                height: 1.25em;
+                padding: 4px;
+            }
+
+            div {
+                height: -webkit-fill-available;
+            }
+
+            #bg {
+                background-color: var(--ue-bg-color);
+                border: var(--ue-border);
+                border-radius: var(--ue-border-radius);
+                width: 100%;
+                overflow: hidden;
+            }
+
+            #bar {
+                position: relative;
+                background-color: var(--ue-color);
+                width: ${clamp(0, 100, value)}%;
+                transition: width ${clamp(0, Infinity, duration)}s ease
+                    ${clamp(0, Infinity, delay)}s;
+            }
+        </style>
+        <div id="bg">
+            <div
+                id="bar"
+                @transitionend=${() => {
+        dispatch(host, 'updated');
+        if (value >= 100)
+            dispatch(host, 'completed');
+    }}
+            ></div>
+        </div>
+    `;
+};
+const UeProgressBar = define('ue-progress-bar', Object.assign(Object.assign({}, properties$7), { render: lit(template$7) }));
+
+const properties$8 = Object.assign(Object.assign({}, SingleSelectGroup), { direction: reflect('direction', 'column') });
+const styles$6 = html `
+    <style>
+        :host {
+            display: flex;
+        }
+
+        ue-button {
+            padding: 0;
+        }
+    </style>
+`;
+const UeSelectGrp = define('ue-select-grp', Object.assign(Object.assign({}, properties$8), { render: lit(host => html `
+                ${styles$6}
+                <div style="display: flex; flex-direction: ${host.direction}">
+                    ${buttonList(host)}
+                </div>
+            `) }));
+
+const properties$9 = {
+    expand: false,
+    direction: reflect('direction', 'right'),
+    duration: reflect('duration', 0.2)
+};
+const styles$7 = html `
+    <style>
+        :host {
+            display: block;
+            overflow: hidden;
+            position: absolute;
+        }
+
+        .left {
+            transform: translate(110%, 0);
+            flex-direction: row-reverse;
+        }
+
+        .right {
+            transform: translate(-110%, 0);
+            flex-direction: row;
+        }
+
+        .down {
+            transform: translate(0, -110%);
+            flex-direction: column;
+        }
+
+        .right {
+            transform: translate(0, 110%);
+            flex-direction: column-reverse;
+        }
+
+        div {
+            display: flex;
+            align-items: center;
+        }
+
+        .expand {
+            transform: translate(0, 0);
+        }
+    </style>
+`;
+const template$8 = ({ direction, duration, expand }) => html `
+        ${styles$7}
+        <div
+            class=${classMap({ expand, [direction]: true })}
+            style="transition: transform ${duration}s;"
+        >
+            <slot></slot>
+        </div>
+    `;
+const UeDrawer = define('ue-drawer', Object.assign(Object.assign({}, properties$9), { render: lit(template$8) }));
+
+export { UeButton, UeContentItem, UeDrawer, UeDropdown, UeIcon, UeListItem, UeProgressBar, UeSelectGrp, UeSlider, UeTabGroup, UeText, UeTooltip };

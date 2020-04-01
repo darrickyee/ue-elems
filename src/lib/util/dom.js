@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 /**
  * Adds an event listener to `target` and returns the associated `removeEventListener` function.
  *
@@ -58,21 +49,19 @@ function eventPromise(eventType, target = document, reject = false) {
         target.addEventListener(eventType, reject ? rej : res, { once: true });
     });
 }
-export function repeatUntil(callback, eventType, delay = 500) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const cancel = eventPromise(eventType, document, true);
-        yield Promise.race([timeout(delay), cancel]).catch(() => {
-            return;
-        });
-        let isHeld = true;
-        while (isHeld) {
-            yield Promise.race([nextframe(), cancel])
-                .then(callback)
-                .catch(() => {
-                isHeld = false;
-            });
-        }
+export async function repeatUntil(callback, eventType, delay = 500) {
+    const cancel = eventPromise(eventType, document, true);
+    await Promise.race([timeout(delay), cancel]).catch(() => {
+        return;
     });
+    let isHeld = true;
+    while (isHeld) {
+        await Promise.race([nextframe(), cancel])
+            .then(callback)
+            .catch(() => {
+            isHeld = false;
+        });
+    }
 }
 /**
  * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `timeout` milliseconds and rejects otherwise.

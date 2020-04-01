@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>DEMO</title>
+        <!-- <link rel="stylesheet" href="./css/fonts.css" type="text/css" /> -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Alegreya+SC:ital,wght@0,400;0,700;1,400;1,700&family=Alegreya+Sans+SC:wght@300;400;700&family=Alegreya+Sans:wght@300;400;700&family=Alegreya:ital,wght@0,400;0,700;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inter:wght@300&family=Open+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Spectral+SC:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Spectral:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Patrick+Hand+SC&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Mali:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Coming+Soon&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Muli:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Overlock:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Overlock+SC&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="./demo.css" type="text/css" />
+    </head>
+    <body>
+        <style>
+            :root {
+                font-family: 'Source Sans Pro', sans-serif;
+                font-weight: normal;
+                font-size: 32px;
+            }
+        </style>
+        <ue-tab-group
+            preselect="1"
+            location="left"
+            class="btn-style-flat"
+            style="--ue-btn-width: 6em; font-size: 0.8em;"
+        >
+            <ue-content-item label="Toggle">
+                <ue-drawer><ue-text>HALLO</ue-text><ue-text>How r u??</ue-text></ue-drawer>
+                <ue-select-grp
+                    ><ue-list-item>Option 1</ue-list-item><ue-list-item>Option 2</ue-list-item
+                    ><ue-list-item>Last option</ue-list-item>
+                    <ue-text slot="item-label-1">Fuck</ue-text>
+                    <ue-icon slot="item-label-0"></ue-icon>
+                </ue-select-grp>
+            </ue-content-item>
+            <ue-content-item label="Dropdown"
+                ><div style="display: flex;">
+                    <ue-dropdown id="dd-family" preselect="0">
+                        <ue-list-item>Alegreya</ue-list-item>
+                        <ue-list-item>Alegreya SC</ue-list-item>
+                        <ue-list-item>Alegreya Sans</ue-list-item>
+                        <ue-list-item>Alegreya Sans SC</ue-list-item>
+                        <ue-list-item>Overlock</ue-list-item>
+                        <ue-list-item>Overlock SC</ue-list-item>
+                        <ue-list-item>Spectral</ue-list-item>
+                        <ue-list-item>Spectral SC</ue-list-item>
+                        <ue-list-item>Coming Soon</ue-list-item>
+
+                        <ue-list-item>Architects Daughter</ue-list-item>
+                    </ue-dropdown>
+                    <ue-dropdown id="dd-weight" preselect="1"
+                        ><ue-list-item>Lighter</ue-list-item><ue-list-item>Normal</ue-list-item
+                        ><ue-list-item>Bold</ue-list-item></ue-dropdown
+                    >
+                    <ue-dropdown id="dd-size" preselect="1"
+                        ><ue-list-item>24</ue-list-item><ue-list-item>32</ue-list-item
+                        ><ue-list-item>36</ue-list-item><ue-list-item>40</ue-list-item
+                        ><ue-list-item>48</ue-list-item></ue-dropdown
+                    >
+                </div>
+                <div>
+                    <div style="font-size: 0.75em;">
+                        The quick, brown fox jumps over the lazy dog.
+                    </div>
+                    <div>The quick, brown fox jumps over the lazy dog.</div>
+                    <div style="font-size: 1.5em;">
+                        The quick, brown fox jumps over the lazy dog.
+                    </div>
+
+                    <em
+                        ><div style="font-size: 0.75em;">
+                            The quick, brown fox jumps over the lazy dog.
+                        </div>
+                        <div>The quick, brown fox jumps over the lazy dog.</div>
+                        <div style="font-size: 1.5em;">
+                            The quick, brown fox jumps over the lazy dog.
+                        </div></em
+                    >
+
+                    <ue-text style="font-size: 0.75em;"
+                        >The quick, brown fox jumps over the lazy dog.</ue-text
+                    >
+                    <ue-text>The quick, brown fox jumps over the lazy dog.</ue-text>
+                    <ue-text style="font-size: 1.5em;"
+                        >The quick, brown fox jumps over the lazy dog.</ue-text
+                    >
+
+                    <em
+                        ><ue-text style="font-size: 0.75em;"
+                            >The quick, brown fox jumps over the lazy dog.</ue-text
+                        >
+                        <ue-text>The quick, brown fox jumps over the lazy dog.</ue-text>
+                        <ue-text style="font-size: 1.5em;"
+                            >The quick, brown fox jumps over the lazy dog.</ue-text
+                        ></em
+                    >
+                </div>
+            </ue-content-item>
+            <ue-content-item label="Icon"><ue-icon>A</ue-icon></ue-content-item>
+            <ue-content-item label="Text"
+                ><ue-text>The quick, brown fox jumps over the lazy dog.</ue-text
+                ><ue-text>THE QUICK, BROWN FOX JUMPS OVER THE LAZY DOG.</ue-text></ue-content-item
+            >
+
+            <ue-content-item label="Button"
+                ><ue-button class="btn-style-1" id="demo-btn">Click me</ue-button
+                ><ue-text id="btn-val" style="font-size: 0.8em;"></ue-text
+            ></ue-content-item>
+            <ue-content-item label="Slider"
+                ><ue-slider></ue-slider><ue-text id="slider-val" style="font-size: 0.8em;"></ue-text
+            ></ue-content-item>
+            <ue-content-item label="Progress"
+                ><ue-progress-bar></ue-progress-bar
+                ><ue-button style="font-size: 0.8em;" id="rand-btn">Random</ue-button
+                ><ue-text id="progress-val" style="font-size: 0.8em;"></ue-text
+            ></ue-content-item>
+        </ue-tab-group>
+
+        <script>
+            const btn = document.querySelector('#demo-btn');
+            const bt = document.querySelector('#btn-val');
+            btn.addEventListener('click', () => {
+                bt.innerHTML = 'Clicked!';
+                const t = setTimeout(() => {
+                    bt.innerHTML = '';
+                    clearTimeout(t);
+                }, 1000);
+            });
+            const pb = document.querySelector('ue-progress-bar');
+            const pt = document.querySelector('#progress-val');
+            const sl = document.querySelector('ue-slider');
+            const st = document.querySelector('#slider-val');
+            document.querySelector('#rand-btn').addEventListener('click', () => {
+                pb.value = Math.round(Math.random() * 100);
+                pt.innerHTML = `Value: ${pb.value}`;
+            });
+            sl.addEventListener('change', () => {
+                st.innerHTML = `Value: ${sl.value}`;
+            });
+
+            const ddf = document.querySelector('#dd-family');
+            ddf.addEventListener('select', e => {
+                document.body.style.fontFamily = e.detail.label || e.detail.item.innerText;
+            });
+            const ddw = document.querySelector('#dd-weight');
+            ddw.addEventListener('select', e => {
+                document.body.style.fontWeight = e.detail.label || e.detail.item.innerText;
+            });
+            const dds = document.querySelector('#dd-size');
+            dds.addEventListener('select', e => {
+                document.body.style.fontSize = `${e.detail.label || e.detail.item.innerText}px`;
+            });
+        </script>
+        <script src="./demo.js"></script>
+    </body>
+</html>

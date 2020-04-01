@@ -1,5 +1,5 @@
 import { classMap, html, lit } from '../lib/lit';
-import { curry } from '../lib/util/index';
+import { curry, reflect } from '../lib/util';
 import { define } from 'hybrids';
 /********** Utility functions **********/
 const handleEvent = curry((host, { type }) => {
@@ -11,17 +11,15 @@ const handleEvent = curry((host, { type }) => {
             host.focused = host.active = false;
             break;
         case 'mousedown':
-            host.active = host.clickable ? true : false;
+            host.active = true;
             break;
         case 'mouseup':
-            if (host.clickable) {
-                host.active = false;
-                host.checked = host.checkable ? !host.checked : false;
-            }
+            host.active = false;
+            host.checked = host.checkable ? !host.checked : false;
             break;
     }
 });
-const styles = html `
+const styles = host => html `
     <style>
         :host {
             display: flex;
@@ -29,106 +27,92 @@ const styles = html `
             padding: 2px;
             align-items: stretch;
             outline: none;
-            /* overflow: hidden; */
-            width: var(--btn-width);
-            height: var(--btn-height);
-
-            font-size: var(--btn-font-size);
-            font-family: var(--btn-font-family);
+            width: var(--ue-btn-width);
+            height: var(--ue-btn-height);
+            pointer-events: ${host.disabled ? 'none' : ''};
         }
 
         ::slotted(*) {
             user-select: none;
-            pointer-events: none;
+            max-height: -webkit-fill-available;
+            max-width: -webkit-fill-available;
         }
 
         div {
             /* Fixed values */
             display: flex;
+            flex-direction: column;
             padding: 5px;
             flex-grow: 1;
             flex-shrink: inherit;
 
             align-items: center;
-            align-content: center;
+            justify-content: center;
             outline: none;
 
-            /* Set from main css */
+            color: var(--ue-color);
+            background-color: var(--ue-bg-color);
+            border: var(--ue-border);
+            border-radius: var(--ue-border-radius);
 
-            border-radius: var(--btn-border-radius);
-            justify-content: var(--btn-justify-content);
-
-            color: var(--btn-text-color);
-            background-color: var(--btn-bg-color);
-            border: var(--btn-border);
-
-            transition: background-color 0.2s, color 0.2s, transform 0.2s, border 0.2s;
+            transition: var(--ue-transition);
         }
 
         .focused {
-            color: var(--btn-focus-color);
-            background-color: var(--btn-focus-bg-color);
-            border: var(--btn-focus-border);
-            transform: var(--btn-focus-transform);
-            transition: var(--btn-focus-transition);
+            --ue-color: var(--ue-focus-color);
+            --ue-bg-color: var(--ue-focus-bg-color);
+            --ue-border: var(--ue-focus-border);
+
+            transition: var(--ue-transition);
         }
 
         .active {
-            color: var(--btn-click-color);
-            background-color: var(--btn-click-bg-color);
-            border: var(--btn-click-border);
-            transform: var(--btn-click-transform);
-            transition: var(--btn-click-transition);
+            --ue-color: var(--ue-active-color);
+            --ue-bg-color: var(--ue-active-bg-color);
+            --ue-border: var(--ue-active-border);
+
+            transition: var(--ue-transition);
         }
 
         .disabled {
-            color: #888;
-            background-color: #444;
-            border-color: #888;
+            --ue-color: #888;
+            --ue-bg-color: #444;
+            --ue-border: #888;
             pointer-events: none;
         }
 
         .checked {
-            color: var(--btn-click-color);
-            background-color: var(--btn-click-bg-color);
-            border: var(--btn-click-border);
+            --ue-color: var(--ue-active-color);
+            --ue-bg-color: var(--ue-active-bg-color);
+            --ue-border: var(--ue-active-border);
         }
     </style>
 `;
-const reflectBool = (name, defaultValue = true) => ({
-    get: host => host.hasAttribute(name),
-    set: (host, value) => {
-        if (value)
-            host.setAttribute(name, '');
-        else
-            host.removeAttribute(name);
-        return !!value;
-    },
-    connect: (host, key, invalidate) => {
-        host[key] = defaultValue;
-        const obs = new MutationObserver(invalidate);
-        obs.observe(host, { attributeFilter: [key] });
-        return obs.disconnect;
-    }
-});
 const properties = {
-    active: false,
+    active: reflect('active', false),
     checkable: false,
-    checked: false,
-    clickable: true,
-    disabled: false,
-    focused: false
+    checked: reflect('checked', false),
+    disabled: reflect('disabled', false),
+    focused: reflect('focused', false)
 };
-Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
+function focusMe() {
+    if (this && this.focus)
+        this.focus();
+}
+function blurMe() {
+    if (this && this.blur)
+        this.blur();
+}
+// Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
 const template = host => {
     const { active, checked, disabled, focused } = host;
     return html `
-        ${styles}
+        ${styles(host)}
         <div
             tabindex="0"
             class=${classMap({ active, checked, disabled, focused })}
-            @mouseover=${e => e.target.focus()}
-            @mouseleave=${e => e.target.blur()}
+            @mouseover=${focusMe}
+            @mouseleave=${blurMe}
             @mousedown=${handleEvent(host)}
             @mouseup=${handleEvent(host)}
             @focus=${handleEvent(host)}

@@ -1,0 +1,215 @@
+:root {
+    --ue-color: #666;
+    --ue-bg-color: #ccc;
+    --ue-border: 1px solid #888;
+
+    --ue-focus-color: #666;
+    --ue-focus-bg-color: #acf;
+    --ue-focus-border: 1px solid #8af;
+
+    --ue-active-color: white;
+    --ue-active-bg-color: #8af;
+    --ue-active-border: 1px solid #46a;
+
+    --ue-border-radius: 4px;
+
+    --ue-transition: background-color 0.5s, color 0.5s, transform 0.5s, border 0.5s;
+
+    --ue-btn-width: 10em;
+    --ue-btn-height: 2em;
+
+    --ue-border-blur: 1px;
+}
+
+body {
+    background-color: transparent;
+    box-sizing: border-box;
+    user-select: none;
+    outline: none;
+    border: none;
+    overflow: hidden;
+    margin: 0;
+}
+
+.shadow-1 {
+    box-shadow: -1px -1px 2px var(--shadow-color), 0 -1px 2px var(--shadow-color),
+        1px -1px 2px var(--shadow-color), 1px 0 2px var(--shadow-color),
+        1px 1px 2px var(--shadow-color), 0 1px 2px var(--shadow-color),
+        -1px 1px 2px var(--shadow-color), -1px 0 2px var(--shadow-color),
+        -2px -2px 4px var(--shadow-color2), 0 -2px 4px var(--shadow-color2),
+        2px -2px 4px var(--shadow-color2), 2px 0 4px var(--shadow-color2),
+        2px 2px 4px var(--shadow-color2), 0 2px 4px var(--shadow-color2),
+        -2px 2px 4px var(--shadow-color2), -2px 0 4px var(--shadow-color2);
+}
+
+.glow {
+    --shadow-color: rgba(255, 255, 255, 0.25);
+    animation-name: glow-pulse;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes glow-pulse {
+    from {
+        box-shadow: none;
+    }
+
+    to {
+        /* box-shadow: -1px -1px 0.25em var(--shadow-color), 0 -1px 0.25em var(--shadow-color),
+            1px -1px 0.25em var(--shadow-color), 1px 0 0.25em var(--shadow-color),
+            1px 1px 0.25em var(--shadow-color), 0 1px 0.25em var(--shadow-color),
+            -1px 1px 0.25em var(--shadow-color), -1px 0 0.25em var(--shadow-color),
+            -2px -2px 1em var(--shadow-color2), 0 -2px 1em var(--shadow-color2),
+            2px -2px 1em var(--shadow-color2), 2px 0 1em var(--shadow-color2),
+            2px 2px 1em var(--shadow-color2), 0 2px 1em var(--shadow-color2),
+            -2px 2px 1em var(--shadow-color2), -2px 0 1em var(--shadow-color2); */
+        text-shadow: -1px -1px 0.1em var(--shadow-color), 0 -1px 0.1em var(--shadow-color),
+            1px -1px 0.1em var(--shadow-color), 1px 0 0.1em var(--shadow-color),
+            1px 1px 0.1em var(--shadow-color), 0 1px 0.1em var(--shadow-color),
+            -1px 1px 0.1em var(--shadow-color), -1px 0 0.1em var(--shadow-color),
+            -2px -2px 0.25em var(--shadow-color2), 0 -2px 0.25em var(--shadow-color2),
+            2px -2px 0.25em var(--shadow-color2), 2px 0 0.25em var(--shadow-color2),
+            2px 2px 0.25em var(--shadow-color2), 0 2px 0.25em var(--shadow-color2),
+            -2px 2px 0.25em var(--shadow-color2), -2px 0 0.25em var(--shadow-color2);
+        color: white;
+    }
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+ue-content-item {
+    overflow: auto;
+}
+
+ue-content-item > * {
+    margin: 8px;
+    animation-name: fadein;
+    animation-duration: 0.5s;
+}
+
+ue-tab-group {
+    height: 90vh;
+    width: 80vw;
+    margin: 1em;
+}
+
+ue-slider {
+    --ue-color: var(--ue-focus-bg-color);
+}
+
+ue-text {
+    --ue-color: white;
+}
+
+ue-dropdown {
+    --ue-bg-color: white;
+    --ue-btn-height: 1.5em;
+    --ue-btn-width: 12em;
+}
+
+ue-progress-bar {
+    --ue-color: var(--ue-focus-bg-color);
+    --ue-bg-color: transparent;
+    --ue-border: 2px solid var(--ue-focus-bg-color);
+    --ue-border-radius: 3px;
+}
+
+.btn-style-flat {
+    --ue-border-radius: 0;
+    --ue-border: none;
+    --ue-focus-border: none;
+    --ue-active-border: none;
+}
+
+.btn-style-1 {
+    --ue-border-radius: 0.5em;
+    --ue-border: 1px solid #888;
+
+    --ue-bg-color: #ccc;
+
+    --btn-focus-color: var(--text-color-primary);
+    --btn-focus-bg-color: var(--bg-color-light);
+    --btn-focus-border: 2px solid var(--color-primary);
+    --btn-focus-transform: scale(1.05);
+    --btn-focus-transition: background-color 0.2s, border 0.2s, color 0.2s, transform 0.2s;
+
+    --btn-click-color: var(--text-color-primary);
+    --btn-click-bg-color: var(--color-primary);
+    --btn-click-border: 2px solid var(--color-primary);
+    --btn-click-transform: scale(1.02);
+    --btn-click-transition: background-color 0.1s, border 0.1s, color 0.1s, transform 0.1s;
+}
+
+.btn-style-dlg {
+    --btn-font-size: 0.8em;
+    --btn-border-radius: 0.25em;
+    --btn-justify-content: center;
+    --btn-width: 100%;
+
+    --btn-bg-color: var(--bg-color-dark);
+
+    --btn-focus-color: var(--text-color-primary);
+    --btn-focus-bg-color: var(--bg-color-light);
+    --btn-focus-border: 2px solid transparent;
+    /* --btn-focus-transform: scale(1.05); */
+    --btn-focus-transition: background-color 0.2s, border 0.2s, color 0.2s, transform 0.2s;
+
+    --btn-click-color: var(--text-color-primary);
+    --btn-click-bg-color: var(--color-primary);
+    --btn-click-border: 2px solid var(--color-primary);
+    --btn-click-transform: scale(1.02);
+    --btn-click-transition: background-color 0.1s, border 0.1s, color 0.1s, transform 0.1s;
+}
+
+.centered {
+    transform: translateX(-50%);
+}
+
+.pos-h-center {
+    left: 50vw;
+}
+
+.pos-h-left {
+    left: 0;
+}
+
+.pos-h-leftcenter {
+    left: 25vw;
+}
+
+.pos-h-right {
+    right: 0;
+}
+
+.pos-h-rightcenter {
+    right: 25vw;
+}
+
+.pos-v-mid {
+    top: 40vh;
+}
+
+.pos-v-top {
+    top: 0;
+}
+
+.pos-v-high {
+    top: 25vh;
+}
+
+.pos-v-low {
+    top: 70vh;
+}
+
+.pos-v-bot {
+    bottom: 0;
+}
