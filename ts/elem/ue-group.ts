@@ -15,8 +15,10 @@ const singleSelect = {
     },
     observe: (host, selected) => {
         const { items } = host;
+        console.log(`changed to ${selected}`);
+
         if (items[selected])
-            dispatch(host, 'select', {
+            dispatch(host, 'changed', {
                 bubbles: true,
                 composed: true,
                 detail: {
@@ -28,18 +30,8 @@ const singleSelect = {
     }
 };
 
-const multiSelect = {
-    set: ({ items }, value) =>
-        items
-            .filter((item, index) => (item.selected = value.includes(index)))
-            .map(item => items.indexOf(item)),
-    connect: (host, key) => {
-        host[key] = host.defaultItems || [0];
-    }
-};
-
 const BaseGroup = {
-    items: children(hasProps(['label', 'selected']))
+    items: children(el => el['ueItem'])
 };
 
 export const SingleSelectGroup = {
@@ -56,7 +48,7 @@ export const itemList = curry(
         `
 );
 
-export const buttonItemTemplate = host => ({ selected, label }, index) => html`
+export const buttonItemTemplate = host => ({ selected, innerText }, index) => html`
     <ue-button
         .checked=${selected}
         @click=${() => {
@@ -64,7 +56,7 @@ export const buttonItemTemplate = host => ({ selected, label }, index) => html`
         }}
         style="pointer-events: ${selected ? 'none' : 'inherit'}"
     >
-        <slot name="item-label-${index}">${label}</slot>
+        <slot name="item-label-${index}">${innerText}</slot>
     </ue-button>
 `;
 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TEST</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <style>
+            ue-list {
+                --ue-color-primary: aquamarine;
+                --ue-color-primary-text: red;
+            }
+        </style>
+        <ue-button>
+            Click me because I have a lot of text
+            <!-- <img src="https://s.abcnews.com/images/Lifestyle/puppy-ht-3-er-170907_16x9_992.jpg" /> -->
+        </ue-button>
+        <ue-progress-bar value="25"><ue-tooltip>Bleh</ue-tooltip></ue-progress-bar>
+        <ue-list>
+            <ue-list-item><ue-button>Click me?</ue-button></ue-list-item>
+            <ue-list-item selected>Two</ue-list-item>
+            <ue-list-item>Three</ue-list-item>
+        </ue-list>
+
+        <ue-slider style="position: relative; width: 50vw; left: 25vw;"> </ue-slider>
+        <input type="number" />
+        <script src="https://unpkg.com/@popperjs/core@2"></script>
+        <script src="https://unpkg.com/tippy.js@6"></script>
+        <script src="./demo.js"></script>
+    </body>
+</html>

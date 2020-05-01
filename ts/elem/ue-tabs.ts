@@ -1,55 +1,38 @@
-import { lit, html, classMap } from '../lib/lit';
+import { lit, html, styleMap } from '../lib/lit';
 import { SingleSelectGroup, buttonList } from './ue-group';
-import { define } from 'hybrids';
+import { define, property } from 'hybrids';
 import { reflect } from '../lib/util';
-
-const hostFlex = {
-    left: 'row',
-    right: 'row-reverse',
-    top: 'column',
-    bottom: 'column-reverse'
-};
 
 const properties = {
     ...SingleSelectGroup,
-    location: reflect('location', 'left'),
-    direction: host => (['left', 'right'].includes(host.location) ? 'column' : 'row')
-    // active: {
-    //     get: host => host.items.find(item => item.selected),
-    //     observe: ({ items }) => {
-    //         items.forEach(item => (item.active = item.selected));
-    //     }
-    // }
+    location: reflect('location', 'left')
 };
 
 const styles = html`
     <style>
         :host {
-            display: block;
+            display: flex;
+            flex-direction: column;
+        }
+
+        :host([location='left']) {
+            flex-direction: row;
+        }
+
+        :host([location='right']) {
+            flex-direction: row-reverse;
+        }
+
+        :host([location='bottom']) {
+            flex-direction: column-reverse;
         }
 
         ue-button {
-            padding: 0;
+            margin: 0.25em;
         }
 
         div {
             display: flex;
-        }
-
-        .left {
-            flex-direction: row;
-        }
-
-        .right {
-            flex-direction: row-reverse;
-        }
-
-        .top {
-            flex-direction: column;
-        }
-
-        .bottom {
-            flex-direction: column-reverse;
         }
     </style>
 `;
@@ -57,10 +40,12 @@ const styles = html`
 const template = host =>
     html`
         ${styles}
-        <div class=${classMap({ [host.location]: true })}>
-            <div style="flex-direction: ${host.direction};">${buttonList(host)}</div>
-            <slot></slot>
+        <div
+            style="flex-direction: ${['left', 'right'].includes(host.location) ? 'column' : 'row'};"
+        >
+            ${buttonList(host)}
         </div>
+        <slot></slot>
     `;
 
 export const UeTabGroup = define('ue-tab-group', { ...properties, render: lit(template) });

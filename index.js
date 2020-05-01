@@ -1,3 +1,17 @@
+import{directive as e,render as t,html as r,svg as o}from"lit-html";import{property as n,define as a,dispatch as i,children as s}from"hybrids";import c from"tippy.js";
+/**
+ * @license
+ * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */const l=new WeakMap,d=e=>(...t)=>{const r=e(...t);return l.set(r,!0),r},u=e=>"function"==typeof e&&l.has(e),f={};String(Math.random()).slice(2);class p{constructor(e){this.value=void 0,this.committer=e}setValue(e){e===f||(e=>null===e||!("object"==typeof e||"function"==typeof e))(e)&&e===this.value||(this.value=e,u(e)||(this.committer.dirty=!0))}commit(){for(;u(this.value);){const e=this.value;this.value=f,e(this)}this.value!==f&&this.committer.commit()}}class m extends p{}let h=!1;(()=>{try{const e={get capture(){return h=!0,!1}};window.addEventListener("test",e,e),window.removeEventListener("test",e,e)}catch(e){}})(),
 /**
  * @license
  * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
@@ -11,100 +25,7 @@
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
-const directives = new WeakMap();
-/**
- * Brands a function as a directive factory function so that lit-html will call
- * the function during template rendering, rather than passing as a value.
- *
- * A _directive_ is a function that takes a Part as an argument. It has the
- * signature: `(part: Part) => void`.
- *
- * A directive _factory_ is a function that takes arguments for data and
- * configuration and returns a directive. Users of directive usually refer to
- * the directive factory as the directive. For example, "The repeat directive".
- *
- * Usually a template author will invoke a directive factory in their template
- * with relevant arguments, which will then return a directive function.
- *
- * Here's an example of using the `repeat()` directive factory that takes an
- * array and a function to render an item:
- *
- * ```js
- * html`<ul><${repeat(items, (item) => html`<li>${item}</li>`)}</ul>`
- * ```
- *
- * When `repeat` is invoked, it returns a directive function that closes over
- * `items` and the template function. When the outer template is rendered, the
- * return directive function is called with the Part for the expression.
- * `repeat` then performs it's custom logic to render multiple items.
- *
- * @param f The directive factory function. Must be a function that returns a
- * function of the signature `(part: Part) => void`. The returned function will
- * be called with the part object.
- *
- * @example
- *
- * import {directive, html} from 'lit-html';
- *
- * const immutable = directive((v) => (part) => {
- *   if (part.value !== v) {
- *     part.setValue(v)
- *   }
- * });
- */
-const directive = (f) => ((...args) => {
-    const d = f(...args);
-    directives.set(d, true);
-    return d;
-});
-const isDirective = (o) => {
-    return typeof o === 'function' && directives.has(o);
-};
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * True if the custom elements polyfill is in use.
- */
-const isCEPolyfill = typeof window !== 'undefined' &&
-    window.customElements != null &&
-    window.customElements.polyfillWrapFlushCallback !==
-        undefined;
-/**
- * Reparents nodes, starting from `start` (inclusive) to `end` (exclusive),
- * into another container (could be the same container), before `before`. If
- * `before` is null, it appends the nodes to the container.
- */
-const reparentNodes = (container, start, end = null, before = null) => {
-    while (start !== end) {
-        const n = start.nextSibling;
-        container.insertBefore(start, before);
-        start = n;
-    }
-};
-/**
- * Removes nodes, starting from `start` (inclusive) to `end` (exclusive), from
- * `container`.
- */
-const removeNodes = (container, start, end = null) => {
-    while (start !== end) {
-        const n = start.nextSibling;
-        container.removeChild(start);
-        start = n;
-    }
-};
-
+"undefined"!=typeof window&&(window.litHtmlVersions||(window.litHtmlVersions=[])).push("1.2.1");
 /**
  * @license
  * Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
@@ -118,2777 +39,7 @@ const removeNodes = (container, start, end = null) => {
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
-/**
- * A sentinel value that signals that a value was handled by a directive and
- * should not be written to the DOM.
- */
-const noChange = {};
-/**
- * A sentinel value that signals a NodePart to fully clear its content.
- */
-const nothing = {};
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * An expression marker with embedded unique key to avoid collision with
- * possible text in templates.
- */
-const marker = `{{lit-${String(Math.random()).slice(2)}}}`;
-/**
- * An expression marker used text-positions, multi-binding attributes, and
- * attributes with markup-like text values.
- */
-const nodeMarker = `<!--${marker}-->`;
-const markerRegex = new RegExp(`${marker}|${nodeMarker}`);
-/**
- * Suffix appended to all bound attribute names.
- */
-const boundAttributeSuffix = '$lit$';
-/**
- * An updatable Template that tracks the location of dynamic parts.
- */
-class Template {
-    constructor(result, element) {
-        this.parts = [];
-        this.element = element;
-        const nodesToRemove = [];
-        const stack = [];
-        // Edge needs all 4 parameters present; IE11 needs 3rd parameter to be null
-        const walker = document.createTreeWalker(element.content, 133 /* NodeFilter.SHOW_{ELEMENT|COMMENT|TEXT} */, null, false);
-        // Keeps track of the last index associated with a part. We try to delete
-        // unnecessary nodes, but we never want to associate two different parts
-        // to the same index. They must have a constant node between.
-        let lastPartIndex = 0;
-        let index = -1;
-        let partIndex = 0;
-        const { strings, values: { length } } = result;
-        while (partIndex < length) {
-            const node = walker.nextNode();
-            if (node === null) {
-                // We've exhausted the content inside a nested template element.
-                // Because we still have parts (the outer for-loop), we know:
-                // - There is a template in the stack
-                // - The walker will find a nextNode outside the template
-                walker.currentNode = stack.pop();
-                continue;
-            }
-            index++;
-            if (node.nodeType === 1 /* Node.ELEMENT_NODE */) {
-                if (node.hasAttributes()) {
-                    const attributes = node.attributes;
-                    const { length } = attributes;
-                    // Per
-                    // https://developer.mozilla.org/en-US/docs/Web/API/NamedNodeMap,
-                    // attributes are not guaranteed to be returned in document order.
-                    // In particular, Edge/IE can return them out of order, so we cannot
-                    // assume a correspondence between part index and attribute index.
-                    let count = 0;
-                    for (let i = 0; i < length; i++) {
-                        if (endsWith(attributes[i].name, boundAttributeSuffix)) {
-                            count++;
-                        }
-                    }
-                    while (count-- > 0) {
-                        // Get the template literal section leading up to the first
-                        // expression in this attribute
-                        const stringForPart = strings[partIndex];
-                        // Find the attribute name
-                        const name = lastAttributeNameRegex.exec(stringForPart)[2];
-                        // Find the corresponding attribute
-                        // All bound attributes have had a suffix added in
-                        // TemplateResult#getHTML to opt out of special attribute
-                        // handling. To look up the attribute value we also need to add
-                        // the suffix.
-                        const attributeLookupName = name.toLowerCase() + boundAttributeSuffix;
-                        const attributeValue = node.getAttribute(attributeLookupName);
-                        node.removeAttribute(attributeLookupName);
-                        const statics = attributeValue.split(markerRegex);
-                        this.parts.push({ type: 'attribute', index, name, strings: statics });
-                        partIndex += statics.length - 1;
-                    }
-                }
-                if (node.tagName === 'TEMPLATE') {
-                    stack.push(node);
-                    walker.currentNode = node.content;
-                }
-            }
-            else if (node.nodeType === 3 /* Node.TEXT_NODE */) {
-                const data = node.data;
-                if (data.indexOf(marker) >= 0) {
-                    const parent = node.parentNode;
-                    const strings = data.split(markerRegex);
-                    const lastIndex = strings.length - 1;
-                    // Generate a new text node for each literal section
-                    // These nodes are also used as the markers for node parts
-                    for (let i = 0; i < lastIndex; i++) {
-                        let insert;
-                        let s = strings[i];
-                        if (s === '') {
-                            insert = createMarker();
-                        }
-                        else {
-                            const match = lastAttributeNameRegex.exec(s);
-                            if (match !== null && endsWith(match[2], boundAttributeSuffix)) {
-                                s = s.slice(0, match.index) + match[1] +
-                                    match[2].slice(0, -boundAttributeSuffix.length) + match[3];
-                            }
-                            insert = document.createTextNode(s);
-                        }
-                        parent.insertBefore(insert, node);
-                        this.parts.push({ type: 'node', index: ++index });
-                    }
-                    // If there's no text, we must insert a comment to mark our place.
-                    // Else, we can trust it will stick around after cloning.
-                    if (strings[lastIndex] === '') {
-                        parent.insertBefore(createMarker(), node);
-                        nodesToRemove.push(node);
-                    }
-                    else {
-                        node.data = strings[lastIndex];
-                    }
-                    // We have a part for each match found
-                    partIndex += lastIndex;
-                }
-            }
-            else if (node.nodeType === 8 /* Node.COMMENT_NODE */) {
-                if (node.data === marker) {
-                    const parent = node.parentNode;
-                    // Add a new marker node to be the startNode of the Part if any of
-                    // the following are true:
-                    //  * We don't have a previousSibling
-                    //  * The previousSibling is already the start of a previous part
-                    if (node.previousSibling === null || index === lastPartIndex) {
-                        index++;
-                        parent.insertBefore(createMarker(), node);
-                    }
-                    lastPartIndex = index;
-                    this.parts.push({ type: 'node', index });
-                    // If we don't have a nextSibling, keep this node so we have an end.
-                    // Else, we can remove it to save future costs.
-                    if (node.nextSibling === null) {
-                        node.data = '';
-                    }
-                    else {
-                        nodesToRemove.push(node);
-                        index--;
-                    }
-                    partIndex++;
-                }
-                else {
-                    let i = -1;
-                    while ((i = node.data.indexOf(marker, i + 1)) !== -1) {
-                        // Comment node has a binding marker inside, make an inactive part
-                        // The binding won't work, but subsequent bindings will
-                        // TODO (justinfagnani): consider whether it's even worth it to
-                        // make bindings in comments work
-                        this.parts.push({ type: 'node', index: -1 });
-                        partIndex++;
-                    }
-                }
-            }
-        }
-        // Remove text binding nodes after the walk to not disturb the TreeWalker
-        for (const n of nodesToRemove) {
-            n.parentNode.removeChild(n);
-        }
-    }
-}
-const endsWith = (str, suffix) => {
-    const index = str.length - suffix.length;
-    return index >= 0 && str.slice(index) === suffix;
-};
-const isTemplatePartActive = (part) => part.index !== -1;
-// Allows `document.createComment('')` to be renamed for a
-// small manual size-savings.
-const createMarker = () => document.createComment('');
-/**
- * This regex extracts the attribute name preceding an attribute-position
- * expression. It does this by matching the syntax allowed for attributes
- * against the string literal directly preceding the expression, assuming that
- * the expression is in an attribute-value position.
- *
- * See attributes in the HTML spec:
- * https://www.w3.org/TR/html5/syntax.html#elements-attributes
- *
- * " \x09\x0a\x0c\x0d" are HTML space characters:
- * https://www.w3.org/TR/html5/infrastructure.html#space-characters
- *
- * "\0-\x1F\x7F-\x9F" are Unicode control characters, which includes every
- * space character except " ".
- *
- * So an attribute is:
- *  * The name: any character except a control character, space character, ('),
- *    ("), ">", "=", or "/"
- *  * Followed by zero or more space characters
- *  * Followed by "="
- *  * Followed by zero or more space characters
- *  * Followed by:
- *    * Any character except space, ('), ("), "<", ">", "=", (`), or
- *    * (") then any non-("), or
- *    * (') then any non-(')
- */
-const lastAttributeNameRegex = 
-// eslint-disable-next-line no-control-regex
-/([ \x09\x0a\x0c\x0d])([^\0-\x1F\x7F-\x9F "'>=/]+)([ \x09\x0a\x0c\x0d]*=[ \x09\x0a\x0c\x0d]*(?:[^ \x09\x0a\x0c\x0d"'`<>=]*|"[^"]*|'[^']*))$/;
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * An instance of a `Template` that can be attached to the DOM and updated
- * with new values.
- */
-class TemplateInstance {
-    constructor(template, processor, options) {
-        this.__parts = [];
-        this.template = template;
-        this.processor = processor;
-        this.options = options;
-    }
-    update(values) {
-        let i = 0;
-        for (const part of this.__parts) {
-            if (part !== undefined) {
-                part.setValue(values[i]);
-            }
-            i++;
-        }
-        for (const part of this.__parts) {
-            if (part !== undefined) {
-                part.commit();
-            }
-        }
-    }
-    _clone() {
-        // There are a number of steps in the lifecycle of a template instance's
-        // DOM fragment:
-        //  1. Clone - create the instance fragment
-        //  2. Adopt - adopt into the main document
-        //  3. Process - find part markers and create parts
-        //  4. Upgrade - upgrade custom elements
-        //  5. Update - set node, attribute, property, etc., values
-        //  6. Connect - connect to the document. Optional and outside of this
-        //     method.
-        //
-        // We have a few constraints on the ordering of these steps:
-        //  * We need to upgrade before updating, so that property values will pass
-        //    through any property setters.
-        //  * We would like to process before upgrading so that we're sure that the
-        //    cloned fragment is inert and not disturbed by self-modifying DOM.
-        //  * We want custom elements to upgrade even in disconnected fragments.
-        //
-        // Given these constraints, with full custom elements support we would
-        // prefer the order: Clone, Process, Adopt, Upgrade, Update, Connect
-        //
-        // But Safari does not implement CustomElementRegistry#upgrade, so we
-        // can not implement that order and still have upgrade-before-update and
-        // upgrade disconnected fragments. So we instead sacrifice the
-        // process-before-upgrade constraint, since in Custom Elements v1 elements
-        // must not modify their light DOM in the constructor. We still have issues
-        // when co-existing with CEv0 elements like Polymer 1, and with polyfills
-        // that don't strictly adhere to the no-modification rule because shadow
-        // DOM, which may be created in the constructor, is emulated by being placed
-        // in the light DOM.
-        //
-        // The resulting order is on native is: Clone, Adopt, Upgrade, Process,
-        // Update, Connect. document.importNode() performs Clone, Adopt, and Upgrade
-        // in one step.
-        //
-        // The Custom Elements v1 polyfill supports upgrade(), so the order when
-        // polyfilled is the more ideal: Clone, Process, Adopt, Upgrade, Update,
-        // Connect.
-        const fragment = isCEPolyfill ?
-            this.template.element.content.cloneNode(true) :
-            document.importNode(this.template.element.content, true);
-        const stack = [];
-        const parts = this.template.parts;
-        // Edge needs all 4 parameters present; IE11 needs 3rd parameter to be null
-        const walker = document.createTreeWalker(fragment, 133 /* NodeFilter.SHOW_{ELEMENT|COMMENT|TEXT} */, null, false);
-        let partIndex = 0;
-        let nodeIndex = 0;
-        let part;
-        let node = walker.nextNode();
-        // Loop through all the nodes and parts of a template
-        while (partIndex < parts.length) {
-            part = parts[partIndex];
-            if (!isTemplatePartActive(part)) {
-                this.__parts.push(undefined);
-                partIndex++;
-                continue;
-            }
-            // Progress the tree walker until we find our next part's node.
-            // Note that multiple parts may share the same node (attribute parts
-            // on a single element), so this loop may not run at all.
-            while (nodeIndex < part.index) {
-                nodeIndex++;
-                if (node.nodeName === 'TEMPLATE') {
-                    stack.push(node);
-                    walker.currentNode = node.content;
-                }
-                if ((node = walker.nextNode()) === null) {
-                    // We've exhausted the content inside a nested template element.
-                    // Because we still have parts (the outer for-loop), we know:
-                    // - There is a template in the stack
-                    // - The walker will find a nextNode outside the template
-                    walker.currentNode = stack.pop();
-                    node = walker.nextNode();
-                }
-            }
-            // We've arrived at our part's node.
-            if (part.type === 'node') {
-                const part = this.processor.handleTextExpression(this.options);
-                part.insertAfterNode(node.previousSibling);
-                this.__parts.push(part);
-            }
-            else {
-                this.__parts.push(...this.processor.handleAttributeExpressions(node, part.name, part.strings, this.options));
-            }
-            partIndex++;
-        }
-        if (isCEPolyfill) {
-            document.adoptNode(fragment);
-            customElements.upgrade(fragment);
-        }
-        return fragment;
-    }
-}
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-const commentMarker = ` ${marker} `;
-/**
- * The return type of `html`, which holds a Template and the values from
- * interpolated expressions.
- */
-class TemplateResult {
-    constructor(strings, values, type, processor) {
-        this.strings = strings;
-        this.values = values;
-        this.type = type;
-        this.processor = processor;
-    }
-    /**
-     * Returns a string of HTML used to create a `<template>` element.
-     */
-    getHTML() {
-        const l = this.strings.length - 1;
-        let html = '';
-        let isCommentBinding = false;
-        for (let i = 0; i < l; i++) {
-            const s = this.strings[i];
-            // For each binding we want to determine the kind of marker to insert
-            // into the template source before it's parsed by the browser's HTML
-            // parser. The marker type is based on whether the expression is in an
-            // attribute, text, or comment position.
-            //   * For node-position bindings we insert a comment with the marker
-            //     sentinel as its text content, like <!--{{lit-guid}}-->.
-            //   * For attribute bindings we insert just the marker sentinel for the
-            //     first binding, so that we support unquoted attribute bindings.
-            //     Subsequent bindings can use a comment marker because multi-binding
-            //     attributes must be quoted.
-            //   * For comment bindings we insert just the marker sentinel so we don't
-            //     close the comment.
-            //
-            // The following code scans the template source, but is *not* an HTML
-            // parser. We don't need to track the tree structure of the HTML, only
-            // whether a binding is inside a comment, and if not, if it appears to be
-            // the first binding in an attribute.
-            const commentOpen = s.lastIndexOf('<!--');
-            // We're in comment position if we have a comment open with no following
-            // comment close. Because <-- can appear in an attribute value there can
-            // be false positives.
-            isCommentBinding = (commentOpen > -1 || isCommentBinding) &&
-                s.indexOf('-->', commentOpen + 1) === -1;
-            // Check to see if we have an attribute-like sequence preceding the
-            // expression. This can match "name=value" like structures in text,
-            // comments, and attribute values, so there can be false-positives.
-            const attributeMatch = lastAttributeNameRegex.exec(s);
-            if (attributeMatch === null) {
-                // We're only in this branch if we don't have a attribute-like
-                // preceding sequence. For comments, this guards against unusual
-                // attribute values like <div foo="<!--${'bar'}">. Cases like
-                // <!-- foo=${'bar'}--> are handled correctly in the attribute branch
-                // below.
-                html += s + (isCommentBinding ? commentMarker : nodeMarker);
-            }
-            else {
-                // For attributes we use just a marker sentinel, and also append a
-                // $lit$ suffix to the name to opt-out of attribute-specific parsing
-                // that IE and Edge do for style and certain SVG attributes.
-                html += s.substr(0, attributeMatch.index) + attributeMatch[1] +
-                    attributeMatch[2] + boundAttributeSuffix + attributeMatch[3] +
-                    marker;
-            }
-        }
-        html += this.strings[l];
-        return html;
-    }
-    getTemplateElement() {
-        const template = document.createElement('template');
-        template.innerHTML = this.getHTML();
-        return template;
-    }
-}
-/**
- * A TemplateResult for SVG fragments.
- *
- * This class wraps HTML in an `<svg>` tag in order to parse its contents in the
- * SVG namespace, then modifies the template to remove the `<svg>` tag so that
- * clones only container the original fragment.
- */
-class SVGTemplateResult extends TemplateResult {
-    getHTML() {
-        return `<svg>${super.getHTML()}</svg>`;
-    }
-    getTemplateElement() {
-        const template = super.getTemplateElement();
-        const content = template.content;
-        const svgElement = content.firstChild;
-        content.removeChild(svgElement);
-        reparentNodes(content, svgElement.firstChild);
-        return template;
-    }
-}
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-const isPrimitive = (value) => {
-    return (value === null ||
-        !(typeof value === 'object' || typeof value === 'function'));
-};
-const isIterable = (value) => {
-    return Array.isArray(value) ||
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !!(value && value[Symbol.iterator]);
-};
-/**
- * Writes attribute values to the DOM for a group of AttributeParts bound to a
- * single attribute. The value is only set once even if there are multiple parts
- * for an attribute.
- */
-class AttributeCommitter {
-    constructor(element, name, strings) {
-        this.dirty = true;
-        this.element = element;
-        this.name = name;
-        this.strings = strings;
-        this.parts = [];
-        for (let i = 0; i < strings.length - 1; i++) {
-            this.parts[i] = this._createPart();
-        }
-    }
-    /**
-     * Creates a single part. Override this to create a differnt type of part.
-     */
-    _createPart() {
-        return new AttributePart(this);
-    }
-    _getValue() {
-        const strings = this.strings;
-        const l = strings.length - 1;
-        let text = '';
-        for (let i = 0; i < l; i++) {
-            text += strings[i];
-            const part = this.parts[i];
-            if (part !== undefined) {
-                const v = part.value;
-                if (isPrimitive(v) || !isIterable(v)) {
-                    text += typeof v === 'string' ? v : String(v);
-                }
-                else {
-                    for (const t of v) {
-                        text += typeof t === 'string' ? t : String(t);
-                    }
-                }
-            }
-        }
-        text += strings[l];
-        return text;
-    }
-    commit() {
-        if (this.dirty) {
-            this.dirty = false;
-            this.element.setAttribute(this.name, this._getValue());
-        }
-    }
-}
-/**
- * A Part that controls all or part of an attribute value.
- */
-class AttributePart {
-    constructor(committer) {
-        this.value = undefined;
-        this.committer = committer;
-    }
-    setValue(value) {
-        if (value !== noChange && (!isPrimitive(value) || value !== this.value)) {
-            this.value = value;
-            // If the value is a not a directive, dirty the committer so that it'll
-            // call setAttribute. If the value is a directive, it'll dirty the
-            // committer if it calls setValue().
-            if (!isDirective(value)) {
-                this.committer.dirty = true;
-            }
-        }
-    }
-    commit() {
-        while (isDirective(this.value)) {
-            const directive = this.value;
-            this.value = noChange;
-            directive(this);
-        }
-        if (this.value === noChange) {
-            return;
-        }
-        this.committer.commit();
-    }
-}
-/**
- * A Part that controls a location within a Node tree. Like a Range, NodePart
- * has start and end locations and can set and update the Nodes between those
- * locations.
- *
- * NodeParts support several value types: primitives, Nodes, TemplateResults,
- * as well as arrays and iterables of those types.
- */
-class NodePart {
-    constructor(options) {
-        this.value = undefined;
-        this.__pendingValue = undefined;
-        this.options = options;
-    }
-    /**
-     * Appends this part into a container.
-     *
-     * This part must be empty, as its contents are not automatically moved.
-     */
-    appendInto(container) {
-        this.startNode = container.appendChild(createMarker());
-        this.endNode = container.appendChild(createMarker());
-    }
-    /**
-     * Inserts this part after the `ref` node (between `ref` and `ref`'s next
-     * sibling). Both `ref` and its next sibling must be static, unchanging nodes
-     * such as those that appear in a literal section of a template.
-     *
-     * This part must be empty, as its contents are not automatically moved.
-     */
-    insertAfterNode(ref) {
-        this.startNode = ref;
-        this.endNode = ref.nextSibling;
-    }
-    /**
-     * Appends this part into a parent part.
-     *
-     * This part must be empty, as its contents are not automatically moved.
-     */
-    appendIntoPart(part) {
-        part.__insert(this.startNode = createMarker());
-        part.__insert(this.endNode = createMarker());
-    }
-    /**
-     * Inserts this part after the `ref` part.
-     *
-     * This part must be empty, as its contents are not automatically moved.
-     */
-    insertAfterPart(ref) {
-        ref.__insert(this.startNode = createMarker());
-        this.endNode = ref.endNode;
-        ref.endNode = this.startNode;
-    }
-    setValue(value) {
-        this.__pendingValue = value;
-    }
-    commit() {
-        if (this.startNode.parentNode === null) {
-            return;
-        }
-        while (isDirective(this.__pendingValue)) {
-            const directive = this.__pendingValue;
-            this.__pendingValue = noChange;
-            directive(this);
-        }
-        const value = this.__pendingValue;
-        if (value === noChange) {
-            return;
-        }
-        if (isPrimitive(value)) {
-            if (value !== this.value) {
-                this.__commitText(value);
-            }
-        }
-        else if (value instanceof TemplateResult) {
-            this.__commitTemplateResult(value);
-        }
-        else if (value instanceof Node) {
-            this.__commitNode(value);
-        }
-        else if (isIterable(value)) {
-            this.__commitIterable(value);
-        }
-        else if (value === nothing) {
-            this.value = nothing;
-            this.clear();
-        }
-        else {
-            // Fallback, will render the string representation
-            this.__commitText(value);
-        }
-    }
-    __insert(node) {
-        this.endNode.parentNode.insertBefore(node, this.endNode);
-    }
-    __commitNode(value) {
-        if (this.value === value) {
-            return;
-        }
-        this.clear();
-        this.__insert(value);
-        this.value = value;
-    }
-    __commitText(value) {
-        const node = this.startNode.nextSibling;
-        value = value == null ? '' : value;
-        // If `value` isn't already a string, we explicitly convert it here in case
-        // it can't be implicitly converted - i.e. it's a symbol.
-        const valueAsString = typeof value === 'string' ? value : String(value);
-        if (node === this.endNode.previousSibling &&
-            node.nodeType === 3 /* Node.TEXT_NODE */) {
-            // If we only have a single text node between the markers, we can just
-            // set its value, rather than replacing it.
-            // TODO(justinfagnani): Can we just check if this.value is primitive?
-            node.data = valueAsString;
-        }
-        else {
-            this.__commitNode(document.createTextNode(valueAsString));
-        }
-        this.value = value;
-    }
-    __commitTemplateResult(value) {
-        const template = this.options.templateFactory(value);
-        if (this.value instanceof TemplateInstance &&
-            this.value.template === template) {
-            this.value.update(value.values);
-        }
-        else {
-            // Make sure we propagate the template processor from the TemplateResult
-            // so that we use its syntax extension, etc. The template factory comes
-            // from the render function options so that it can control template
-            // caching and preprocessing.
-            const instance = new TemplateInstance(template, value.processor, this.options);
-            const fragment = instance._clone();
-            instance.update(value.values);
-            this.__commitNode(fragment);
-            this.value = instance;
-        }
-    }
-    __commitIterable(value) {
-        // For an Iterable, we create a new InstancePart per item, then set its
-        // value to the item. This is a little bit of overhead for every item in
-        // an Iterable, but it lets us recurse easily and efficiently update Arrays
-        // of TemplateResults that will be commonly returned from expressions like:
-        // array.map((i) => html`${i}`), by reusing existing TemplateInstances.
-        // If _value is an array, then the previous render was of an
-        // iterable and _value will contain the NodeParts from the previous
-        // render. If _value is not an array, clear this part and make a new
-        // array for NodeParts.
-        if (!Array.isArray(this.value)) {
-            this.value = [];
-            this.clear();
-        }
-        // Lets us keep track of how many items we stamped so we can clear leftover
-        // items from a previous render
-        const itemParts = this.value;
-        let partIndex = 0;
-        let itemPart;
-        for (const item of value) {
-            // Try to reuse an existing part
-            itemPart = itemParts[partIndex];
-            // If no existing part, create a new one
-            if (itemPart === undefined) {
-                itemPart = new NodePart(this.options);
-                itemParts.push(itemPart);
-                if (partIndex === 0) {
-                    itemPart.appendIntoPart(this);
-                }
-                else {
-                    itemPart.insertAfterPart(itemParts[partIndex - 1]);
-                }
-            }
-            itemPart.setValue(item);
-            itemPart.commit();
-            partIndex++;
-        }
-        if (partIndex < itemParts.length) {
-            // Truncate the parts array so _value reflects the current state
-            itemParts.length = partIndex;
-            this.clear(itemPart && itemPart.endNode);
-        }
-    }
-    clear(startNode = this.startNode) {
-        removeNodes(this.startNode.parentNode, startNode.nextSibling, this.endNode);
-    }
-}
-/**
- * Implements a boolean attribute, roughly as defined in the HTML
- * specification.
- *
- * If the value is truthy, then the attribute is present with a value of
- * ''. If the value is falsey, the attribute is removed.
- */
-class BooleanAttributePart {
-    constructor(element, name, strings) {
-        this.value = undefined;
-        this.__pendingValue = undefined;
-        if (strings.length !== 2 || strings[0] !== '' || strings[1] !== '') {
-            throw new Error('Boolean attributes can only contain a single expression');
-        }
-        this.element = element;
-        this.name = name;
-        this.strings = strings;
-    }
-    setValue(value) {
-        this.__pendingValue = value;
-    }
-    commit() {
-        while (isDirective(this.__pendingValue)) {
-            const directive = this.__pendingValue;
-            this.__pendingValue = noChange;
-            directive(this);
-        }
-        if (this.__pendingValue === noChange) {
-            return;
-        }
-        const value = !!this.__pendingValue;
-        if (this.value !== value) {
-            if (value) {
-                this.element.setAttribute(this.name, '');
-            }
-            else {
-                this.element.removeAttribute(this.name);
-            }
-            this.value = value;
-        }
-        this.__pendingValue = noChange;
-    }
-}
-/**
- * Sets attribute values for PropertyParts, so that the value is only set once
- * even if there are multiple parts for a property.
- *
- * If an expression controls the whole property value, then the value is simply
- * assigned to the property under control. If there are string literals or
- * multiple expressions, then the strings are expressions are interpolated into
- * a string first.
- */
-class PropertyCommitter extends AttributeCommitter {
-    constructor(element, name, strings) {
-        super(element, name, strings);
-        this.single =
-            (strings.length === 2 && strings[0] === '' && strings[1] === '');
-    }
-    _createPart() {
-        return new PropertyPart(this);
-    }
-    _getValue() {
-        if (this.single) {
-            return this.parts[0].value;
-        }
-        return super._getValue();
-    }
-    commit() {
-        if (this.dirty) {
-            this.dirty = false;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            this.element[this.name] = this._getValue();
-        }
-    }
-}
-class PropertyPart extends AttributePart {
-}
-// Detect event listener options support. If the `capture` property is read
-// from the options object, then options are supported. If not, then the third
-// argument to add/removeEventListener is interpreted as the boolean capture
-// value so we should only pass the `capture` property.
-let eventOptionsSupported = false;
-// Wrap into an IIFE because MS Edge <= v41 does not support having try/catch
-// blocks right into the body of a module
-(() => {
-    try {
-        const options = {
-            get capture() {
-                eventOptionsSupported = true;
-                return false;
-            }
-        };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        window.addEventListener('test', options, options);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        window.removeEventListener('test', options, options);
-    }
-    catch (_e) {
-        // event options not supported
-    }
-})();
-class EventPart {
-    constructor(element, eventName, eventContext) {
-        this.value = undefined;
-        this.__pendingValue = undefined;
-        this.element = element;
-        this.eventName = eventName;
-        this.eventContext = eventContext;
-        this.__boundHandleEvent = (e) => this.handleEvent(e);
-    }
-    setValue(value) {
-        this.__pendingValue = value;
-    }
-    commit() {
-        while (isDirective(this.__pendingValue)) {
-            const directive = this.__pendingValue;
-            this.__pendingValue = noChange;
-            directive(this);
-        }
-        if (this.__pendingValue === noChange) {
-            return;
-        }
-        const newListener = this.__pendingValue;
-        const oldListener = this.value;
-        const shouldRemoveListener = newListener == null ||
-            oldListener != null &&
-                (newListener.capture !== oldListener.capture ||
-                    newListener.once !== oldListener.once ||
-                    newListener.passive !== oldListener.passive);
-        const shouldAddListener = newListener != null && (oldListener == null || shouldRemoveListener);
-        if (shouldRemoveListener) {
-            this.element.removeEventListener(this.eventName, this.__boundHandleEvent, this.__options);
-        }
-        if (shouldAddListener) {
-            this.__options = getOptions(newListener);
-            this.element.addEventListener(this.eventName, this.__boundHandleEvent, this.__options);
-        }
-        this.value = newListener;
-        this.__pendingValue = noChange;
-    }
-    handleEvent(event) {
-        if (typeof this.value === 'function') {
-            this.value.call(this.eventContext || this.element, event);
-        }
-        else {
-            this.value.handleEvent(event);
-        }
-    }
-}
-// We copy options because of the inconsistent behavior of browsers when reading
-// the third argument of add/removeEventListener. IE11 doesn't support options
-// at all. Chrome 41 only reads `capture` if the argument is an object.
-const getOptions = (o) => o &&
-    (eventOptionsSupported ?
-        { capture: o.capture, passive: o.passive, once: o.once } :
-        o.capture);
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * Creates Parts when a template is instantiated.
- */
-class DefaultTemplateProcessor {
-    /**
-     * Create parts for an attribute-position binding, given the event, attribute
-     * name, and string literals.
-     *
-     * @param element The element containing the binding
-     * @param name  The attribute name
-     * @param strings The string literals. There are always at least two strings,
-     *   event for fully-controlled bindings with a single expression.
-     */
-    handleAttributeExpressions(element, name, strings, options) {
-        const prefix = name[0];
-        if (prefix === '.') {
-            const committer = new PropertyCommitter(element, name.slice(1), strings);
-            return committer.parts;
-        }
-        if (prefix === '@') {
-            return [new EventPart(element, name.slice(1), options.eventContext)];
-        }
-        if (prefix === '?') {
-            return [new BooleanAttributePart(element, name.slice(1), strings)];
-        }
-        const committer = new AttributeCommitter(element, name, strings);
-        return committer.parts;
-    }
-    /**
-     * Create parts for a text-position binding.
-     * @param templateFactory
-     */
-    handleTextExpression(options) {
-        return new NodePart(options);
-    }
-}
-const defaultTemplateProcessor = new DefaultTemplateProcessor();
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * The default TemplateFactory which caches Templates keyed on
- * result.type and result.strings.
- */
-function templateFactory(result) {
-    let templateCache = templateCaches.get(result.type);
-    if (templateCache === undefined) {
-        templateCache = {
-            stringsArray: new WeakMap(),
-            keyString: new Map()
-        };
-        templateCaches.set(result.type, templateCache);
-    }
-    let template = templateCache.stringsArray.get(result.strings);
-    if (template !== undefined) {
-        return template;
-    }
-    // If the TemplateStringsArray is new, generate a key from the strings
-    // This key is shared between all templates with identical content
-    const key = result.strings.join(marker);
-    // Check if we already have a Template for this key
-    template = templateCache.keyString.get(key);
-    if (template === undefined) {
-        // If we have not seen this key before, create a new Template
-        template = new Template(result, result.getTemplateElement());
-        // Cache the Template for this key
-        templateCache.keyString.set(key, template);
-    }
-    // Cache all future queries for this TemplateStringsArray
-    templateCache.stringsArray.set(result.strings, template);
-    return template;
-}
-const templateCaches = new Map();
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-const parts = new WeakMap();
-/**
- * Renders a template result or other value to a container.
- *
- * To update a container with new values, reevaluate the template literal and
- * call `render` with the new result.
- *
- * @param result Any value renderable by NodePart - typically a TemplateResult
- *     created by evaluating a template tag like `html` or `svg`.
- * @param container A DOM parent to render to. The entire contents are either
- *     replaced, or efficiently updated if the same result type was previous
- *     rendered there.
- * @param options RenderOptions for the entire render tree rendered to this
- *     container. Render options must *not* change between renders to the same
- *     container, as those changes will not effect previously rendered DOM.
- */
-const render = (result, container, options) => {
-    let part = parts.get(container);
-    if (part === undefined) {
-        removeNodes(container, container.firstChild);
-        parts.set(container, part = new NodePart(Object.assign({ templateFactory }, options)));
-        part.appendInto(container);
-    }
-    part.setValue(result);
-    part.commit();
-};
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-// IMPORTANT: do not change the property name or the assignment expression.
-// This line will be used in regexes to search for lit-html usage.
-// TODO(justinfagnani): inject version number at build time
-if (typeof window !== 'undefined') {
-    (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.2.1');
-}
-/**
- * Interprets a template literal as an HTML template that can efficiently
- * render to and update a container.
- */
-const html = (strings, ...values) => new TemplateResult(strings, values, 'html', defaultTemplateProcessor);
-/**
- * Interprets a template literal as an SVG template that can efficiently
- * render to and update a container.
- */
-const svg = (strings, ...values) => new SVGTemplateResult(strings, values, 'svg', defaultTemplateProcessor);
-
-/**
- * @license
- * Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-// IE11 doesn't support classList on SVG elements, so we emulate it with a Set
-class ClassList {
-    constructor(element) {
-        this.classes = new Set();
-        this.changed = false;
-        this.element = element;
-        const classList = (element.getAttribute('class') || '').split(/\s+/);
-        for (const cls of classList) {
-            this.classes.add(cls);
-        }
-    }
-    add(cls) {
-        this.classes.add(cls);
-        this.changed = true;
-    }
-    remove(cls) {
-        this.classes.delete(cls);
-        this.changed = true;
-    }
-    commit() {
-        if (this.changed) {
-            let classString = '';
-            this.classes.forEach((cls) => classString += cls + ' ');
-            this.element.setAttribute('class', classString);
-        }
-    }
-}
-/**
- * Stores the ClassInfo object applied to a given AttributePart.
- * Used to unset existing values when a new ClassInfo object is applied.
- */
-const previousClassesCache = new WeakMap();
-/**
- * A directive that applies CSS classes. This must be used in the `class`
- * attribute and must be the only part used in the attribute. It takes each
- * property in the `classInfo` argument and adds the property name to the
- * element's `class` if the property value is truthy; if the property value is
- * falsey, the property name is removed from the element's `class`. For example
- * `{foo: bar}` applies the class `foo` if the value of `bar` is truthy.
- * @param classInfo {ClassInfo}
- */
-const classMap = directive((classInfo) => (part) => {
-    if (!(part instanceof AttributePart) || (part instanceof PropertyPart) ||
-        part.committer.name !== 'class' || part.committer.parts.length > 1) {
-        throw new Error('The `classMap` directive must be used in the `class` attribute ' +
-            'and must be the only part in the attribute.');
-    }
-    const { committer } = part;
-    const { element } = committer;
-    let previousClasses = previousClassesCache.get(part);
-    if (previousClasses === undefined) {
-        // Write static classes once
-        // Use setAttribute() because className isn't a string on SVG elements
-        element.setAttribute('class', committer.strings.join(' '));
-        previousClassesCache.set(part, previousClasses = new Set());
-    }
-    const classList = (element.classList || new ClassList(element));
-    // Remove old classes that no longer apply
-    // We use forEach() instead of for-of so that re don't require down-level
-    // iteration.
-    previousClasses.forEach((name) => {
-        if (!(name in classInfo)) {
-            classList.remove(name);
-            previousClasses.delete(name);
-        }
-    });
-    // Add or remove classes based on their classMap value
-    for (const name in classInfo) {
-        const value = classInfo[name];
-        if (value != previousClasses.has(name)) {
-            // We explicitly want a loose truthy check of `value` because it seems
-            // more convenient that '' and 0 are skipped.
-            if (value) {
-                classList.add(name);
-                previousClasses.add(name);
-            }
-            else {
-                classList.remove(name);
-                previousClasses.delete(name);
-            }
-        }
-    }
-    if (typeof classList.commit === 'function') {
-        classList.commit();
-    }
-});
-
-/**
- * @license
- * Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * Stores the StyleInfo object applied to a given AttributePart.
- * Used to unset existing values when a new StyleInfo object is applied.
- */
-const previousStylePropertyCache = new WeakMap();
-/**
- * A directive that applies CSS properties to an element.
- *
- * `styleMap` can only be used in the `style` attribute and must be the only
- * expression in the attribute. It takes the property names in the `styleInfo`
- * object and adds the property values as CSS properties. Property names with
- * dashes (`-`) are assumed to be valid CSS property names and set on the
- * element's style object using `setProperty()`. Names without dashes are
- * assumed to be camelCased JavaScript property names and set on the element's
- * style object using property assignment, allowing the style object to
- * translate JavaScript-style names to CSS property names.
- *
- * For example `styleMap({backgroundColor: 'red', 'border-top': '5px', '--size':
- * '0'})` sets the `background-color`, `border-top` and `--size` properties.
- *
- * @param styleInfo {StyleInfo}
- */
-const styleMap = directive((styleInfo) => (part) => {
-    if (!(part instanceof AttributePart) || (part instanceof PropertyPart) ||
-        part.committer.name !== 'style' || part.committer.parts.length > 1) {
-        throw new Error('The `styleMap` directive must be used in the style attribute ' +
-            'and must be the only part in the attribute.');
-    }
-    const { committer } = part;
-    const { style } = committer.element;
-    let previousStyleProperties = previousStylePropertyCache.get(part);
-    if (previousStyleProperties === undefined) {
-        // Write static styles once
-        style.cssText = committer.strings.join(' ');
-        previousStylePropertyCache.set(part, previousStyleProperties = new Set());
-    }
-    // Remove old properties that no longer exist in styleInfo
-    // We use forEach() instead of for-of so that re don't require down-level
-    // iteration.
-    previousStyleProperties.forEach((name) => {
-        if (!(name in styleInfo)) {
-            previousStyleProperties.delete(name);
-            if (name.indexOf('-') === -1) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                style[name] = null;
-            }
-            else {
-                style.removeProperty(name);
-            }
-        }
-    });
-    // Add or update properties
-    for (const name in styleInfo) {
-        previousStyleProperties.add(name);
-        if (name.indexOf('-') === -1) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            style[name] = styleInfo[name];
-        }
-        else {
-            style.setProperty(name, styleInfo[name]);
-        }
-    }
-});
-
-const hasRun = new WeakSet();
-/**
- * lit-html directive to run a function once on first render.
- *
- * @param fn
- */
-const once = directive((fn) => (part) => {
-    if (hasRun.has(part))
-        return;
-    part.setValue(fn());
-    hasRun.add(part);
-});
-const lit = (fn) => {
-    return host => {
-        const template = fn(host);
-        return (host, target) => render(template, target);
-    };
-};
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var camelToDashMap = new Map();
-function camelToDash(str) {
-  var result = camelToDashMap.get(str);
-
-  if (result === undefined) {
-    result = str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
-    camelToDashMap.set(str, result);
-  }
-
-  return result;
-}
-function pascalToDash(str) {
-  return camelToDash(str.replace(/((?!([A-Z]{2}|^))[A-Z])/g, "-$1"));
-}
-function dispatch(host, eventType) {
-  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  return host.dispatchEvent(new CustomEvent(eventType, _objectSpread({
-    bubbles: false
-  }, options)));
-}
-function shadyCSS(fn, fallback) {
-  var shady = window.ShadyCSS;
-  /* istanbul ignore next */
-
-  if (shady && !shady.nativeShadow) {
-    return fn(shady);
-  }
-
-  return fallback;
-}
-function stringifyElement(element) {
-  var tagName = String(element.tagName).toLowerCase();
-  return "<".concat(tagName, ">");
-}
-var IS_IE = "ActiveXObject" in window;
-
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-var defaultTransform = function defaultTransform(v) {
-  return v;
-};
-
-var objectTransform = function objectTransform(value) {
-  if (_typeof(value) !== "object") {
-    throw TypeError("Assigned value must be an object: ".concat(_typeof(value)));
-  }
-
-  return value && Object.freeze(value);
-};
-
-function property(value, connect) {
-  var type = _typeof(value);
-
-  var transform = defaultTransform;
-
-  switch (type) {
-    case "string":
-      transform = String;
-      break;
-
-    case "number":
-      transform = Number;
-      break;
-
-    case "boolean":
-      transform = Boolean;
-      break;
-
-    case "function":
-      transform = value;
-      value = transform();
-      break;
-
-    case "object":
-      if (value) Object.freeze(value);
-      transform = objectTransform;
-      break;
-  }
-
-  return {
-    get: function get(host) {
-      var val = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : value;
-      return val;
-    },
-    set: function set(host, val, oldValue) {
-      return transform(val, oldValue);
-    },
-    connect: type !== "object" && type !== "undefined" ? function (host, key, invalidate) {
-      if (host[key] === value) {
-        var attrName = camelToDash(key);
-
-        if (host.hasAttribute(attrName)) {
-          var attrValue = host.getAttribute(attrName);
-          host[key] = attrValue === "" && transform === Boolean ? true : attrValue;
-        }
-      }
-
-      return connect && connect(host, key, invalidate);
-    } : connect
-  };
-}
-
-function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { _defineProperty$1(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty$1(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _typeof$1(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$1 = function _typeof(obj) { return typeof obj; }; } else { _typeof$1 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$1(obj); }
-
-function render$1(fn) {
-  var customOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  if (typeof fn !== "function") {
-    throw TypeError("The first argument must be a function: ".concat(_typeof$1(fn)));
-  }
-
-  var options = _objectSpread$1({
-    shadowRoot: true
-  }, customOptions);
-
-  var shadowRootInit = {
-    mode: "open"
-  };
-
-  if (_typeof$1(options.shadowRoot) === "object") {
-    Object.assign(shadowRootInit, options.shadowRoot);
-  }
-
-  return {
-    get: function get(host) {
-      var update = fn(host);
-      var target = host;
-
-      if (options.shadowRoot) {
-        if (!host.shadowRoot) host.attachShadow(shadowRootInit);
-        target = host.shadowRoot;
-      }
-
-      return function flush() {
-        update(host, target);
-        return target;
-      };
-    },
-    observe: function observe(host, flush) {
-      flush();
-    }
-  };
-}
-
-var callbacks = new WeakMap();
-var queue = new Set();
-
-function execute() {
-  try {
-    queue.forEach(function (target) {
-      try {
-        callbacks.get(target)();
-        queue.delete(target);
-      } catch (e) {
-        queue.delete(target);
-        throw e;
-      }
-    });
-  } catch (e) {
-    if (queue.size) execute();
-    throw e;
-  }
-}
-
-function dispatch$1(target) {
-  if (!queue.size) {
-    requestAnimationFrame(execute);
-  }
-
-  queue.add(target);
-}
-function subscribe(target, cb) {
-  callbacks.set(target, cb);
-  dispatch$1(target);
-  return function unsubscribe() {
-    queue.delete(target);
-    callbacks.delete(target);
-  };
-}
-
-var entries = new WeakMap();
-function getEntry(target, key) {
-  var targetMap = entries.get(target);
-
-  if (!targetMap) {
-    targetMap = new Map();
-    entries.set(target, targetMap);
-  }
-
-  var entry = targetMap.get(key);
-
-  if (!entry) {
-    entry = {
-      target: target,
-      key: key,
-      value: undefined,
-      contexts: undefined,
-      deps: undefined,
-      state: 0,
-      checksum: 0,
-      observed: false
-    };
-    targetMap.set(key, entry);
-  }
-
-  return entry;
-}
-
-function calculateChecksum(entry) {
-  var checksum = entry.state;
-
-  if (entry.deps) {
-    entry.deps.forEach(function (depEntry) {
-      checksum += depEntry.state;
-    });
-  }
-
-  return checksum;
-}
-
-function dispatchDeep(entry) {
-  if (entry.observed) dispatch$1(entry);
-  if (entry.contexts) entry.contexts.forEach(dispatchDeep);
-}
-
-var contextStack = new Set();
-function get(target, key, getter) {
-  var entry = getEntry(target, key);
-
-  if (contextStack.size && contextStack.has(entry)) {
-    throw Error("Circular get invocation of the '".concat(key, "' property in '").concat(stringifyElement(target), "'"));
-  }
-
-  contextStack.forEach(function (context) {
-    context.deps = context.deps || new Set();
-    context.deps.add(entry);
-
-    if (context.observed) {
-      entry.contexts = entry.contexts || new Set();
-      entry.contexts.add(context);
-    }
-  });
-
-  if (entry.checksum && entry.checksum === calculateChecksum(entry)) {
-    return entry.value;
-  }
-
-  try {
-    contextStack.add(entry);
-
-    if (entry.observed && entry.deps && entry.deps.size) {
-      entry.deps.forEach(function (depEntry) {
-        if (depEntry.contexts) depEntry.contexts.delete(entry);
-      });
-    }
-
-    entry.deps = undefined;
-    var nextValue = getter(target, entry.value);
-
-    if (nextValue !== entry.value) {
-      entry.state += 1;
-      entry.value = nextValue;
-      dispatchDeep(entry);
-    }
-
-    entry.checksum = calculateChecksum(entry);
-    contextStack.delete(entry);
-  } catch (e) {
-    entry.checksum = 0;
-    contextStack.delete(entry);
-    contextStack.forEach(function (context) {
-      context.deps.delete(entry);
-      if (context.observed) entry.contexts.delete(context);
-    });
-    throw e;
-  }
-
-  return entry.value;
-}
-function set(target, key, setter, value, force) {
-  if (contextStack.size && !force) {
-    throw Error("Try to set '".concat(key, "' of '").concat(stringifyElement(target), "' in get call"));
-  }
-
-  var entry = getEntry(target, key);
-  var newValue = setter(target, value, entry.value);
-
-  if (newValue !== entry.value) {
-    entry.checksum = 0;
-    entry.state += 1;
-    entry.value = newValue;
-    dispatchDeep(entry);
-  }
-}
-function invalidate(target, key, clearValue) {
-  if (contextStack.size) {
-    throw Error("Try to invalidate '".concat(key, "' in '").concat(stringifyElement(target), "' get call"));
-  }
-
-  var entry = getEntry(target, key);
-  entry.checksum = 0;
-  entry.state += 1;
-  dispatchDeep(entry);
-
-  if (clearValue) {
-    entry.value = undefined;
-  }
-}
-function observe(target, key, getter, fn) {
-  var entry = getEntry(target, key);
-  entry.observed = true;
-  var lastValue;
-  var unsubscribe = subscribe(entry, function () {
-    var value = get(target, key, getter);
-
-    if (value !== lastValue) {
-      fn(target, value, lastValue);
-      lastValue = value;
-    }
-  });
-
-  if (entry.deps) {
-    entry.deps.forEach(function (depEntry) {
-      depEntry.contexts = depEntry.contexts || new Set();
-      depEntry.contexts.add(entry);
-    });
-  }
-
-  return function unobserve() {
-    unsubscribe();
-    entry.observed = false;
-
-    if (entry.deps && entry.deps.size) {
-      entry.deps.forEach(function (depEntry) {
-        if (depEntry.contexts) depEntry.contexts.delete(entry);
-      });
-    }
-  };
-}
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof$2(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _wrapNativeSuper(Class) { var _cache = typeof Map === "function" ? new Map() : undefined; _wrapNativeSuper = function _wrapNativeSuper(Class) { if (Class === null || !_isNativeFunction(Class)) return Class; if (typeof Class !== "function") { throw new TypeError("Super expression must either be null or a function"); } if (typeof _cache !== "undefined") { if (_cache.has(Class)) return _cache.get(Class); _cache.set(Class, Wrapper); } function Wrapper() { return _construct(Class, arguments, _getPrototypeOf(this).constructor); } Wrapper.prototype = Object.create(Class.prototype, { constructor: { value: Wrapper, enumerable: false, writable: true, configurable: true } }); return _setPrototypeOf(Wrapper, Class); }; return _wrapNativeSuper(Class); }
-
-function isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-function _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
-
-function _isNativeFunction(fn) { return Function.toString.call(fn).indexOf("[native code]") !== -1; }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _typeof$2(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$2 = function _typeof(obj) { return typeof obj; }; } else { _typeof$2 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$2(obj); }
-/* istanbul ignore next */
-
-try {
-  process.env.NODE_ENV;
-} catch (e) {
-  var process = {
-    env: {
-      NODE_ENV: 'production'
-    }
-  };
-} // eslint-disable-line
-
-
-var defaultMethod = function defaultMethod(host, value) {
-  return value;
-};
-
-function compile(Hybrid, descriptors) {
-  Hybrid.hybrids = descriptors;
-  Hybrid.callbacks = [];
-  Object.keys(descriptors).forEach(function (key) {
-    var desc = descriptors[key];
-
-    var type = _typeof$2(desc);
-
-    var config;
-
-    if (type === "function") {
-      config = key === "render" ? render$1(desc) : {
-        get: desc
-      };
-    } else if (type !== "object" || desc === null || Array.isArray(desc)) {
-      config = property(desc);
-    } else {
-      config = {
-        get: desc.get || defaultMethod,
-        set: desc.set || !desc.get && defaultMethod || undefined,
-        connect: desc.connect,
-        observe: desc.observe
-      };
-    }
-
-    Object.defineProperty(Hybrid.prototype, key, {
-      get: function get$1() {
-        return get(this, key, config.get);
-      },
-      set: config.set && function set$1(newValue) {
-        set(this, key, config.set, newValue);
-      },
-      enumerable: true,
-      configurable: process.env.NODE_ENV !== "production"
-    });
-
-    if (config.observe) {
-      Hybrid.callbacks.unshift(function (host) {
-        return observe(host, key, config.get, config.observe);
-      });
-    }
-
-    if (config.connect) {
-      Hybrid.callbacks.push(function (host) {
-        return config.connect(host, key, function () {
-          invalidate(host, key);
-        });
-      });
-    }
-  });
-}
-
-var disconnects = new WeakMap();
-
-function defineElement(tagName, hybridsOrConstructor) {
-  var type = _typeof$2(hybridsOrConstructor);
-
-  if (type !== "object" && type !== "function") {
-    throw TypeError("Second argument must be an object or a function: ".concat(type));
-  }
-
-  var CustomElement = window.customElements.get(tagName);
-
-  if (type === "function") {
-    if (CustomElement !== hybridsOrConstructor) {
-      return window.customElements.define(tagName, hybridsOrConstructor);
-    }
-
-    return CustomElement;
-  }
-
-  if (CustomElement) {
-    if (CustomElement.hybrids === hybridsOrConstructor) {
-      return CustomElement;
-    }
-
-    throw Error("Element '".concat(tagName, "' already defined"));
-  }
-
-  var Hybrid = /*#__PURE__*/function (_HTMLElement) {
-    _inherits(Hybrid, _HTMLElement);
-
-    function Hybrid() {
-      _classCallCheck(this, Hybrid);
-
-      return _possibleConstructorReturn(this, _getPrototypeOf(Hybrid).apply(this, arguments));
-    }
-
-    _createClass(Hybrid, [{
-      key: "connectedCallback",
-      value: function connectedCallback() {
-        var callbacks = this.constructor.callbacks;
-        var list = [];
-
-        for (var index = 0; index < callbacks.length; index += 1) {
-          var cb = callbacks[index](this);
-          if (cb) list.push(cb);
-        }
-
-        disconnects.set(this, list);
-      }
-    }, {
-      key: "disconnectedCallback",
-      value: function disconnectedCallback() {
-        var list = disconnects.get(this);
-
-        for (var index = 0; index < list.length; index += 1) {
-          list[index]();
-        }
-      }
-    }], [{
-      key: "name",
-      get: function get() {
-        return tagName;
-      }
-    }]);
-
-    return Hybrid;
-  }( /*#__PURE__*/_wrapNativeSuper(HTMLElement));
-
-  compile(Hybrid, hybridsOrConstructor);
-  customElements.define(tagName, Hybrid);
-  return Hybrid;
-}
-
-function defineMap(elements) {
-  return Object.keys(elements).reduce(function (acc, key) {
-    var tagName = pascalToDash(key);
-    acc[key] = defineElement(tagName, elements[key]);
-    return acc;
-  }, {});
-}
-
-function define() {
-  if (_typeof$2(arguments.length <= 0 ? undefined : arguments[0]) === "object") {
-    return defineMap(arguments.length <= 0 ? undefined : arguments[0]);
-  }
-
-  return defineElement.apply(void 0, arguments);
-}
-
-function walk(node, fn, options) {
-  var items = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
-  Array.from(node.children).forEach(function (child) {
-    var hybrids = child.constructor.hybrids;
-
-    if (hybrids && fn(hybrids)) {
-      items.push(child);
-
-      if (options.deep && options.nested) {
-        walk(child, fn, options, items);
-      }
-    } else if (options.deep) {
-      walk(child, fn, options, items);
-    }
-  });
-  return items;
-}
-
-function children(hybridsOrFn) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-    deep: false,
-    nested: false
-  };
-  var fn = typeof hybridsOrFn === "function" ? hybridsOrFn : function (hybrids) {
-    return hybrids === hybridsOrFn;
-  };
-  return {
-    get: function get(host) {
-      return walk(host, fn, options);
-    },
-    connect: function connect(host, key, invalidate) {
-      var observer = new MutationObserver(invalidate);
-      observer.observe(host, {
-        childList: true,
-        subtree: !!options.deep
-      });
-      return function () {
-        observer.disconnect();
-      };
-    }
-  };
-}
-
-var map = new WeakMap();
-var dataMap = {
-  get: function get(key, defaultValue) {
-    var value = map.get(key);
-    if (value) return value;
-
-    if (defaultValue) {
-      map.set(key, defaultValue);
-    }
-
-    return defaultValue;
-  },
-  set: function set(key, value) {
-    map.set(key, value);
-    return value;
-  }
-};
-function getTemplateEnd(node) {
-  var data; // eslint-disable-next-line no-cond-assign
-
-  while (node && (data = dataMap.get(node)) && data.endNode) {
-    node = data.endNode;
-  }
-
-  return node;
-}
-function removeTemplate(target) {
-  if (target.nodeType !== Node.TEXT_NODE) {
-    var child = target.childNodes[0];
-
-    while (child) {
-      target.removeChild(child);
-      child = target.childNodes[0];
-    }
-  } else {
-    var data = dataMap.get(target);
-
-    if (data.startNode) {
-      var endNode = getTemplateEnd(data.endNode);
-      var node = data.startNode;
-      var lastNextSibling = endNode.nextSibling;
-
-      while (node) {
-        var nextSibling = node.nextSibling;
-        node.parentNode.removeChild(node);
-        node = nextSibling !== lastNextSibling && nextSibling;
-      }
-    }
-  }
-}
-
-var arrayMap = new WeakMap();
-
-function movePlaceholder(target, previousSibling) {
-  var data = dataMap.get(target);
-  var startNode = data.startNode;
-  var endNode = getTemplateEnd(data.endNode);
-  previousSibling.parentNode.insertBefore(target, previousSibling.nextSibling);
-  var prevNode = target;
-  var node = startNode;
-
-  while (node) {
-    var nextNode = node.nextSibling;
-    prevNode.parentNode.insertBefore(node, prevNode.nextSibling);
-    prevNode = node;
-    node = nextNode !== endNode.nextSibling && nextNode;
-  }
-}
-
-function resolveArray(host, target, value) {
-  var lastEntries = arrayMap.get(target);
-  var entries = value.map(function (item, index) {
-    return {
-      id: Object.prototype.hasOwnProperty.call(item, "id") ? item.id : index,
-      value: item,
-      placeholder: null,
-      available: true
-    };
-  });
-  arrayMap.set(target, entries);
-
-  if (lastEntries) {
-    var ids = new Set();
-    entries.forEach(function (entry) {
-      return ids.add(entry.id);
-    });
-    lastEntries = lastEntries.filter(function (entry) {
-      if (!ids.has(entry.id)) {
-        removeTemplate(entry.placeholder);
-        entry.placeholder.parentNode.removeChild(entry.placeholder);
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  var previousSibling = target;
-  var lastIndex = value.length - 1;
-  var data = dataMap.get(target);
-
-  for (var index = 0; index < entries.length; index += 1) {
-    var entry = entries[index];
-    var matchedEntry = void 0;
-
-    if (lastEntries) {
-      for (var i = 0; i < lastEntries.length; i += 1) {
-        if (lastEntries[i].available && lastEntries[i].id === entry.id) {
-          matchedEntry = lastEntries[i];
-          break;
-        }
-      }
-    }
-
-    var placeholder = void 0;
-
-    if (matchedEntry) {
-      matchedEntry.available = false;
-      placeholder = matchedEntry.placeholder;
-
-      if (placeholder.previousSibling !== previousSibling) {
-        movePlaceholder(placeholder, previousSibling);
-      }
-
-      if (matchedEntry.value !== entry.value) {
-        resolveValue(host, placeholder, entry.value);
-      }
-    } else {
-      placeholder = document.createTextNode("");
-      previousSibling.parentNode.insertBefore(placeholder, previousSibling.nextSibling);
-      resolveValue(host, placeholder, entry.value);
-    }
-
-    previousSibling = getTemplateEnd(dataMap.get(placeholder).endNode || placeholder);
-    if (index === 0) data.startNode = placeholder;
-    if (index === lastIndex) data.endNode = previousSibling;
-    entry.placeholder = placeholder;
-  }
-
-  if (lastEntries) {
-    lastEntries.forEach(function (entry) {
-      if (entry.available) {
-        removeTemplate(entry.placeholder);
-        entry.placeholder.parentNode.removeChild(entry.placeholder);
-      }
-    });
-  }
-}
-
-function _typeof$3(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$3 = function _typeof(obj) { return typeof obj; }; } else { _typeof$3 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$3(obj); }
-function resolveValue(host, target, value) {
-  var type = Array.isArray(value) ? "array" : _typeof$3(value);
-  var data = dataMap.get(target, {});
-
-  if (data.type !== type) {
-    removeTemplate(target);
-    if (type === "array") arrayMap.delete(target);
-    data = dataMap.set(target, {
-      type: type
-    });
-
-    if (target.textContent !== "") {
-      target.textContent = "";
-    }
-  }
-
-  switch (type) {
-    case "function":
-      value(host, target);
-      break;
-
-    case "array":
-      resolveArray(host, target, value);
-      break;
-
-    default:
-      target.textContent = type === "number" || value ? value : "";
-  }
-}
-
-function _typeof$4(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$4 = function _typeof(obj) { return typeof obj; }; } else { _typeof$4 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$4(obj); }
-
-var targets = new WeakMap();
-function resolveEventListener(eventType) {
-  return function (host, target, value, lastValue) {
-    if (lastValue) {
-      var eventMap = targets.get(target);
-
-      if (eventMap) {
-        target.removeEventListener(eventType, eventMap.get(lastValue), lastValue.options !== undefined ? lastValue.options : false);
-      }
-    }
-
-    if (value) {
-      if (typeof value !== "function") {
-        throw Error("Event listener must be a function: ".concat(_typeof$4(value)));
-      }
-
-      var _eventMap = targets.get(target);
-
-      if (!_eventMap) {
-        _eventMap = new WeakMap();
-        targets.set(target, _eventMap);
-      }
-
-      var callback = value.bind(null, host);
-
-      _eventMap.set(value, callback);
-
-      target.addEventListener(eventType, callback, value.options !== undefined ? value.options : false);
-    }
-  };
-}
-
-function _typeof$5(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$5 = function _typeof(obj) { return typeof obj; }; } else { _typeof$5 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$5(obj); }
-
-function normalizeValue(value) {
-  var set = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new Set();
-
-  if (Array.isArray(value)) {
-    value.forEach(function (className) {
-      return set.add(className);
-    });
-  } else if (value !== null && _typeof$5(value) === "object") {
-    Object.keys(value).forEach(function (key) {
-      return value[key] && set.add(key);
-    });
-  } else {
-    set.add(value);
-  }
-
-  return set;
-}
-
-var classMap$1 = new WeakMap();
-function resolveClassList(host, target, value) {
-  var previousList = classMap$1.get(target) || new Set();
-  var list = normalizeValue(value);
-  classMap$1.set(target, list);
-  list.forEach(function (className) {
-    target.classList.add(className);
-    previousList.delete(className);
-  });
-  previousList.forEach(function (className) {
-    target.classList.remove(className);
-  });
-}
-
-function _typeof$6(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$6 = function _typeof(obj) { return typeof obj; }; } else { _typeof$6 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$6(obj); }
-var styleMap$1 = new WeakMap();
-function resolveStyle(host, target, value) {
-  if (value === null || _typeof$6(value) !== "object") {
-    throw TypeError("Style value must be an object in ".concat(stringifyElement(target), ":"), value);
-  }
-
-  var previousMap = styleMap$1.get(target) || new Map();
-  var nextMap = Object.keys(value).reduce(function (map, key) {
-    var dashKey = camelToDash(key);
-    var styleValue = value[key];
-
-    if (!styleValue && styleValue !== 0) {
-      target.style.removeProperty(dashKey);
-    } else {
-      target.style.setProperty(dashKey, styleValue);
-    }
-
-    map.set(dashKey, styleValue);
-    previousMap.delete(dashKey);
-    return map;
-  }, new Map());
-  previousMap.forEach(function (styleValue, key) {
-    target.style[key] = "";
-  });
-  styleMap$1.set(target, nextMap);
-}
-
-function resolveProperty(attrName, propertyName, isSVG) {
-  if (propertyName.substr(0, 2) === "on") {
-    var eventType = propertyName.substr(2);
-    return resolveEventListener(eventType);
-  }
-
-  switch (attrName) {
-    case "class":
-      return resolveClassList;
-
-    case "style":
-      return resolveStyle;
-
-    default:
-      return function (host, target, value) {
-        if (!isSVG && !(target instanceof SVGElement) && propertyName in target) {
-          if (target[propertyName] !== value) {
-            target[propertyName] = value;
-          }
-        } else if (value === false || value === undefined || value === null) {
-          target.removeAttribute(attrName);
-        } else {
-          var attrValue = value === true ? "" : String(value);
-          target.setAttribute(attrName, attrValue);
-        }
-      };
-  }
-}
-
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
-function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-function _typeof$7(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$7 = function _typeof(obj) { return typeof obj; }; } else { _typeof$7 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$7(obj); }
-/* istanbul ignore next */
-
-try {
-  process$1.env.NODE_ENV;
-} catch (e) {
-  var process$1 = {
-    env: {
-      NODE_ENV: 'production'
-    }
-  };
-} // eslint-disable-line
-
-
-var TIMESTAMP = Date.now();
-var getPlaceholder = function getPlaceholder() {
-  var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-  return "{{h-".concat(TIMESTAMP, "-").concat(id, "}}");
-};
-var PLACEHOLDER_REGEXP_TEXT = getPlaceholder("(\\d+)");
-var PLACEHOLDER_REGEXP_EQUAL = new RegExp("^".concat(PLACEHOLDER_REGEXP_TEXT, "$"));
-var PLACEHOLDER_REGEXP_ALL = new RegExp(PLACEHOLDER_REGEXP_TEXT, "g");
-var ATTR_PREFIX = "--".concat(TIMESTAMP, "--");
-var ATTR_REGEXP = new RegExp(ATTR_PREFIX, "g");
-var preparedTemplates = new WeakMap();
-/* istanbul ignore next */
-
-function applyShadyCSS(template, tagName) {
-  if (!tagName) return template;
-  return shadyCSS(function (shady) {
-    var map = preparedTemplates.get(template);
-
-    if (!map) {
-      map = new Map();
-      preparedTemplates.set(template, map);
-    }
-
-    var clone = map.get(tagName);
-
-    if (!clone) {
-      clone = document.createElement("template");
-      clone.content.appendChild(template.content.cloneNode(true));
-      map.set(tagName, clone);
-      var styles = clone.content.querySelectorAll("style");
-      Array.from(styles).forEach(function (style) {
-        var count = style.childNodes.length + 1;
-
-        for (var i = 0; i < count; i += 1) {
-          style.parentNode.insertBefore(document.createTextNode(getPlaceholder()), style);
-        }
-      });
-      shady.prepareTemplate(clone, tagName.toLowerCase());
-    }
-
-    return clone;
-  }, template);
-}
-
-function createSignature(parts, styles) {
-  var signature = parts.reduce(function (acc, part, index) {
-    if (index === 0) {
-      return part;
-    }
-
-    if (parts.slice(index).join("").match(/^\s*<\/\s*(table|tr|thead|tbody|tfoot|colgroup)>/)) {
-      return "".concat(acc, "<!--").concat(getPlaceholder(index - 1), "-->").concat(part);
-    }
-
-    return acc + getPlaceholder(index - 1) + part;
-  }, "");
-
-  if (styles) {
-    signature += "<style>\n".concat(styles.join("\n/*------*/\n"), "\n</style>");
-  }
-  /* istanbul ignore if */
-
-
-  if (IS_IE) {
-    return signature.replace(/style\s*=\s*(["][^"]+["]|['][^']+[']|[^\s"'<>/]+)/g, function (match) {
-      return "".concat(ATTR_PREFIX).concat(match);
-    });
-  }
-
-  return signature;
-}
-
-function getPropertyName(string) {
-  return string.replace(/\s*=\s*['"]*$/g, "").split(/\s+/).pop();
-}
-
-function replaceComments(fragment) {
-  var iterator = document.createNodeIterator(fragment, NodeFilter.SHOW_COMMENT, null, false);
-  var node; // eslint-disable-next-line no-cond-assign
-
-  while (node = iterator.nextNode()) {
-    if (PLACEHOLDER_REGEXP_EQUAL.test(node.textContent)) {
-      node.parentNode.insertBefore(document.createTextNode(node.textContent), node);
-      node.parentNode.removeChild(node);
-    }
-  }
-}
-
-function createInternalWalker(context) {
-  var node;
-  return {
-    get currentNode() {
-      return node;
-    },
-
-    nextNode: function nextNode() {
-      if (node === undefined) {
-        node = context.childNodes[0];
-      } else if (node.childNodes.length) {
-        node = node.childNodes[0];
-      } else if (node.nextSibling) {
-        node = node.nextSibling;
-      } else {
-        var parentNode = node.parentNode;
-        node = parentNode.nextSibling;
-
-        while (!node && parentNode !== context) {
-          parentNode = parentNode.parentNode;
-          node = parentNode.nextSibling;
-        }
-      }
-
-      return !!node;
-    }
-  };
-}
-
-function createExternalWalker(context) {
-  return document.createTreeWalker(context, // eslint-disable-next-line no-bitwise
-  NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, null, false);
-}
-/* istanbul ignore next */
-
-
-var createWalker = _typeof$7(window.ShadyDOM) === "object" && window.ShadyDOM.inUse ? createInternalWalker : createExternalWalker;
-var container = document.createElement("div");
-function compileTemplate(rawParts, isSVG, styles) {
-  var template = document.createElement("template");
-  var parts = [];
-  var signature = createSignature(rawParts, styles);
-  if (isSVG) signature = "<svg>".concat(signature, "</svg>");
-  /* istanbul ignore if */
-
-  if (IS_IE) {
-    template.innerHTML = signature;
-  } else {
-    container.innerHTML = "<template>".concat(signature, "</template>");
-    template.content.appendChild(container.children[0].content);
-  }
-
-  if (isSVG) {
-    var svgRoot = template.content.firstChild;
-    template.content.removeChild(svgRoot);
-    Array.from(svgRoot.childNodes).forEach(function (node) {
-      return template.content.appendChild(node);
-    });
-  }
-
-  replaceComments(template.content);
-  var compileWalker = createWalker(template.content);
-  var compileIndex = 0;
-
-  var _loop = function _loop() {
-    var node = compileWalker.currentNode;
-
-    if (node.nodeType === Node.TEXT_NODE) {
-      var text = node.textContent;
-
-      if (!text.match(PLACEHOLDER_REGEXP_EQUAL)) {
-        var results = text.match(PLACEHOLDER_REGEXP_ALL);
-
-        if (results) {
-          var currentNode = node;
-          results.reduce(function (acc, placeholder) {
-            var _acc$pop$split = acc.pop().split(placeholder),
-                _acc$pop$split2 = _slicedToArray(_acc$pop$split, 2),
-                before = _acc$pop$split2[0],
-                next = _acc$pop$split2[1];
-
-            if (before) acc.push(before);
-            acc.push(placeholder);
-            if (next) acc.push(next);
-            return acc;
-          }, [text]).forEach(function (part, index) {
-            if (index === 0) {
-              currentNode.textContent = part;
-            } else {
-              currentNode = currentNode.parentNode.insertBefore(document.createTextNode(part), currentNode.nextSibling);
-            }
-          });
-        }
-      }
-
-      var equal = node.textContent.match(PLACEHOLDER_REGEXP_EQUAL);
-
-      if (equal) {
-        /* istanbul ignore else */
-        if (!IS_IE) node.textContent = "";
-        parts[equal[1]] = [compileIndex, resolveValue];
-      }
-    } else {
-      /* istanbul ignore else */
-      // eslint-disable-next-line no-lonely-if
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        Array.from(node.attributes).forEach(function (attr) {
-          var value = attr.value.trim();
-          /* istanbul ignore next */
-
-          var name = IS_IE ? attr.name.replace(ATTR_PREFIX, "") : attr.name;
-          var equal = value.match(PLACEHOLDER_REGEXP_EQUAL);
-
-          if (equal) {
-            var propertyName = getPropertyName(rawParts[equal[1]]);
-            parts[equal[1]] = [compileIndex, resolveProperty(name, propertyName, isSVG)];
-            node.removeAttribute(attr.name);
-          } else {
-            var _results = value.match(PLACEHOLDER_REGEXP_ALL);
-
-            if (_results) {
-              var partialName = "attr__".concat(name);
-
-              _results.forEach(function (placeholder, index) {
-                var _placeholder$match = placeholder.match(PLACEHOLDER_REGEXP_EQUAL),
-                    _placeholder$match2 = _slicedToArray(_placeholder$match, 2),
-                    id = _placeholder$match2[1];
-
-                parts[id] = [compileIndex, function (host, target, attrValue) {
-                  var data = dataMap.get(target, {});
-                  data[partialName] = (data[partialName] || value).replace(placeholder, attrValue == null ? "" : attrValue);
-
-                  if (_results.length === 1 || index + 1 === _results.length) {
-                    target.setAttribute(name, data[partialName]);
-                    data[partialName] = undefined;
-                  }
-                }];
-              });
-
-              attr.value = "";
-              /* istanbul ignore next */
-
-              if (IS_IE && name !== attr.name) {
-                node.removeAttribute(attr.name);
-                node.setAttribute(name, "");
-              }
-            }
-          }
-        });
-      }
-    }
-
-    compileIndex += 1;
-  };
-
-  while (compileWalker.nextNode()) {
-    _loop();
-  }
-
-  return function updateTemplateInstance(host, target, args) {
-    var data = dataMap.get(target, {
-      type: "function"
-    });
-
-    if (template !== data.template) {
-      if (data.template || target.nodeType === Node.ELEMENT_NODE) removeTemplate(target);
-      data.prevArgs = null;
-      var fragment = document.importNode(applyShadyCSS(template, host.tagName).content, true);
-      var renderWalker = createWalker(fragment);
-      var clonedParts = parts.slice(0);
-      var renderIndex = 0;
-      var currentPart = clonedParts.shift();
-      var markers = [];
-      data.template = template;
-      data.markers = markers;
-
-      while (renderWalker.nextNode()) {
-        var node = renderWalker.currentNode;
-
-        if (node.nodeType === Node.TEXT_NODE) {
-          /* istanbul ignore next */
-          if (PLACEHOLDER_REGEXP_EQUAL.test(node.textContent)) {
-            node.textContent = "";
-          } else if (IS_IE) {
-            node.textContent = node.textContent.replace(ATTR_REGEXP, "");
-          }
-        }
-
-        while (currentPart && currentPart[0] === renderIndex) {
-          markers.push([node, currentPart[1]]);
-          currentPart = clonedParts.shift();
-        }
-
-        renderIndex += 1;
-      }
-
-      if (target.nodeType === Node.TEXT_NODE) {
-        data.startNode = fragment.childNodes[0];
-        data.endNode = fragment.childNodes[fragment.childNodes.length - 1];
-        var previousChild = target;
-        var child = fragment.childNodes[0];
-
-        while (child) {
-          target.parentNode.insertBefore(child, previousChild.nextSibling);
-          previousChild = child;
-          child = fragment.childNodes[0];
-        }
-      } else {
-        target.appendChild(fragment);
-      }
-    }
-
-    var prevArgs = data.prevArgs;
-    data.prevArgs = args;
-
-    for (var index = 0; index < data.markers.length; index += 1) {
-      var _data$markers$index = _slicedToArray(data.markers[index], 2),
-          _node = _data$markers$index[0],
-          marker = _data$markers$index[1];
-
-      if (!prevArgs || prevArgs[index] !== args[index]) {
-        marker(host, _node, args[index], prevArgs ? prevArgs[index] : undefined);
-      }
-    }
-
-    if (target.nodeType !== Node.TEXT_NODE) {
-      shadyCSS(function (shady) {
-        if (host.shadowRoot) {
-          if (prevArgs) {
-            shady.styleSubtree(host);
-          } else {
-            shady.styleElement(host);
-          }
-        }
-      });
-    }
-  };
-}
-
-var setCache = new Map();
-function set$1(propertyName, value) {
-  if (!propertyName) throw Error("Target property name missing: ".concat(propertyName));
-
-  if (arguments.length === 2) {
-    return function (host) {
-      host[propertyName] = value;
-    };
-  }
-
-  var fn = setCache.get(propertyName);
-
-  if (!fn) {
-    fn = function fn(host, _ref) {
-      var target = _ref.target;
-      host[propertyName] = target.value;
-    };
-
-    setCache.set(propertyName, fn);
-  }
-
-  return fn;
-}
-var promiseMap = new WeakMap();
-function resolve(promise, placeholder) {
-  var delay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 200;
-  return function (host, target) {
-    var timeout;
-
-    if (placeholder) {
-      timeout = setTimeout(function () {
-        timeout = undefined;
-        requestAnimationFrame(function () {
-          placeholder(host, target);
-        });
-      }, delay);
-    }
-
-    promiseMap.set(target, promise);
-    promise.then(function (template) {
-      if (timeout) clearTimeout(timeout);
-
-      if (promiseMap.get(target) === promise) {
-        template(host, target);
-        promiseMap.set(target, null);
-      }
-    });
-  };
-}
-
-var helpers = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    set: set$1,
-    resolve: resolve
-});
-
-var PLACEHOLDER = getPlaceholder();
-var SVG_PLACEHOLDER = getPlaceholder("svg");
-var templatesMap = new Map();
-var stylesMap = new WeakMap();
-var methods = {
-  define: function define$1(elements) {
-    define(elements);
-    return this;
-  },
-  key: function key(id) {
-    this.id = id;
-    return this;
-  },
-  style: function style() {
-    for (var _len = arguments.length, styles = new Array(_len), _key = 0; _key < _len; _key++) {
-      styles[_key] = arguments[_key];
-    }
-
-    stylesMap.set(this, styles);
-    return this;
-  }
-};
-
-function create(parts, args, isSVG) {
-  var createTemplate = function createTemplate(host) {
-    var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : host;
-    var styles = stylesMap.get(createTemplate);
-    var id = parts.join(PLACEHOLDER);
-    if (styles) id += styles.join(PLACEHOLDER);
-    if (isSVG) id += SVG_PLACEHOLDER;
-    var render = templatesMap.get(id);
-
-    if (!render) {
-      render = compileTemplate(parts, isSVG, styles);
-      templatesMap.set(id, render);
-    }
-
-    render(host, target, args);
-  };
-
-  return Object.assign(createTemplate, methods);
-}
-
-function html$1(parts) {
-  for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-    args[_key2 - 1] = arguments[_key2];
-  }
-
-  return create(parts, args);
-}
-function svg$1(parts) {
-  for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    args[_key3 - 1] = arguments[_key3];
-  }
-
-  return create(parts, args, true);
-}
-Object.assign(html$1, helpers);
-Object.assign(svg$1, helpers);
-
-/**
- * Adds an event listener to `target` and returns the associated `removeEventListener` function.
- *
- * @example
- *
- * // Add listener to document
- * const unlisten = listen(document, 'click', () => console.log('clicked'))
- *
- * // Remove listener
- * unlisten();
- *
- * @param target EventTarget to which the listener will be added.
- * @param type Passed to `addEventListener`.
- * @param listener Passed to `addEventListener`.
- * @param options Passed to `addEventListener`.
- *
- * @returns Function that removes the listener when called.
- */
-const listen = (target, type, listener, options) => {
-    target.addEventListener(type, listener, options);
-    return () => target.removeEventListener(type, listener, options);
-};
-const select = (selector, context = document) => context ? context.querySelector(selector) : null;
-function nextframe() {
-    return new Promise(r => {
-        requestAnimationFrame(r);
-    });
-}
-/**
- * Returns a promise that resolves after `duration` milliseconds.  If `reject` is true, rejects the promise instead.
- *
- * @param duration
- * @param reject
- */
-function timeout(duration = 1000, reject = false) {
-    return new Promise((res, rej) => {
-        setTimeout(reject ? rej : res, duration);
-    });
-}
-/**
- * Returns a promise that resolves when an `eventType` event is dispatched on `target`.  If `reject` is true, rejects the promise instead.
- *
- * @param duration
- * @param reject
- */
-function eventPromise(eventType, target = document, reject = false) {
-    return new Promise((res, rej) => {
-        target.addEventListener(eventType, reject ? rej : res, { once: true });
-    });
-}
-async function repeatUntil(callback, eventType, delay = 500) {
-    const cancel = eventPromise(eventType, document, true);
-    await Promise.race([timeout(delay), cancel]).catch(() => {
-        return;
-    });
-    let isHeld = true;
-    while (isHeld) {
-        await Promise.race([nextframe(), cancel])
-            .then(callback)
-            .catch(() => {
-            isHeld = false;
-        });
-    }
-}
-/**
- * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `timeout` milliseconds and rejects otherwise.
- *
- * @param selector Selector string.
- * @param context Context for `selector`.  Defaults to `document`.
- * @param expire Expiration time (milliseconds).  Defaults to 1000.
- */
-const findElement = (selector, context = document, timeout = 1000) => {
-    return new Promise((resolve, reject) => {
-        let expired;
-        const t = setTimeout(() => {
-            expired = true;
-        }, timeout);
-        function _find() {
-            if (expired)
-                return reject();
-            let el = context.querySelector(selector);
-            if (el) {
-                clearTimeout(t);
-                return resolve(el);
-            }
-            requestAnimationFrame(_find);
-        }
-        _find();
-    });
-};
-
-const curry = fn => function $c(...args) {
-    return args.length < fn.length ? $c.bind(null, ...args) : fn.call(null, ...args);
-};
-const pipe = (...fns) => (...args) => fns.reduce((result, fn) => [fn.call(null, ...result)], args)[0];
-
-const lerp = curry((start, end, t) => (end - start) * t + start);
-const invlerp = curry((start, end, x) => (x - start) / (end - start));
-const clamp = curry((min, max, value) => Math.max(min, Math.min(value, max)));
-const roundTo = curry((step, value) => {
-    const decimals = step.toString().split('.')[1];
-    return parseFloat((Math.round(value / step) * step).toFixed(decimals ? decimals.length : 0));
-});
-const remap = curry((fromStart, fromEnd, toStart, toEnd) => pipe(invlerp(fromStart, fromEnd), lerp(toStart, toEnd)));
-
-const reflectStr = (attrName, defaultValue) => ({
-    get: host => host.getAttribute(attrName) || defaultValue,
-    set: (host, value) => {
-        host.setAttribute(attrName, value);
-        return value;
-    },
-    connect: (host, key, invalidate) => {
-        const obs = new MutationObserver(invalidate);
-        obs.observe(host, { attributeFilter: [attrName] });
-    }
-});
-const reflectNum = (attrName, defaultValue) => (Object.assign(Object.assign({}, reflectStr(attrName, defaultValue)), { get: host => parseFloat(host.getAttribute(attrName)) || defaultValue }));
-const reflectBool = (attrName, defaultValue) => (Object.assign(Object.assign({}, reflectStr(attrName, defaultValue)), { get: host => host.hasAttribute(attrName) || defaultValue, set: (host, value) => {
-        if (value)
-            host.setAttribute(attrName, '');
-        else
-            host.removeAttribute(attrName);
-        return !!value;
-    } }));
-const mappers = {
-    boolean: reflectBool,
-    number: reflectNum,
-    string: reflectStr
-};
-const reflect = (attrName, defaultValue) => attrName && mappers[typeof defaultValue]
-    ? mappers[typeof defaultValue](attrName, defaultValue)
-    : property(defaultValue);
-
-// Cartesian product w/ self
-const AxA = (arr) => [].concat(...arr.map(i => arr.map(j => [i, j])));
-const range = (s, e) => Array.from('0'.repeat(e - s), (_, i) => s + i);
-const coords = i => AxA(range(-i, i + 1));
-const shadowStyle = host => {
-    const { lineWidth } = host;
-    const w = isNaN(parseInt(lineWidth)) ? 1 : Math.max(parseInt(lineWidth), 0);
-    const suffix = ' var(--ue-border-blur, 0px) var(--ue-border-color, black)';
-    return coords(w)
-        .map(xy => xy.map(i => i + 'px').join(' '))
-        .map(s => s + ` ${suffix}`)
-        .join(', ');
-};
-const styles = html `
+class v{constructor(e){this.classes=new Set,this.changed=!1,this.element=e;const t=(e.getAttribute("class")||"").split(/\s+/);for(const e of t)this.classes.add(e)}add(e){this.classes.add(e),this.changed=!0}remove(e){this.classes.delete(e),this.changed=!0}commit(){if(this.changed){let e="";this.classes.forEach(t=>e+=t+" "),this.element.setAttribute("class",e)}}}const b=new WeakMap,g=d(e=>t=>{if(!(t instanceof p)||t instanceof m||"class"!==t.committer.name||t.committer.parts.length>1)throw new Error("The `classMap` directive must be used in the `class` attribute and must be the only part in the attribute.");const{committer:r}=t,{element:o}=r;let n=b.get(t);void 0===n&&(o.setAttribute("class",r.strings.join(" ")),b.set(t,n=new Set));const a=o.classList||new v(o);n.forEach(t=>{t in e||(a.remove(t),n.delete(t))});for(const t in e){const r=e[t];r!=n.has(t)&&(r?(a.add(t),n.add(t)):(a.remove(t),n.delete(t)))}"function"==typeof a.commit&&a.commit()}),y=new WeakMap,w=d(e=>t=>{if(!(t instanceof p)||t instanceof m||"style"!==t.committer.name||t.committer.parts.length>1)throw new Error("The `styleMap` directive must be used in the style attribute and must be the only part in the attribute.");const{committer:r}=t,{style:o}=r.element;let n=y.get(t);void 0===n&&(o.cssText=r.strings.join(" "),y.set(t,n=new Set)),n.forEach(t=>{t in e||(n.delete(t),-1===t.indexOf("-")?o[t]=null:o.removeProperty(t))});for(const t in e)n.add(t),-1===t.indexOf("-")?o[t]=e[t]:o.setProperty(t,e[t])}),x=new WeakSet,O=e(e=>t=>{x.has(t)||(t.setValue(e()),x.add(t))}),j=(e,r={})=>o=>{const n=e(o);return(e,o)=>t(n,o,r)},k=e=>function t(...r){return r.length<e.length?t.bind(null,...r):e.call(null,...r)},E=k((e,t,r)=>(t-e)*r+e),M=k((e,t,r)=>(r-e)/(t-e)),$=k((e,t,r)=>Math.max(e,Math.min(r,t))),L=k((e,t)=>{if(e<=0)return t;const r=e.toString().split(".")[1];return parseFloat((Math.round(t/e)*e).toFixed(r?r.length:0))}),S=k((e,t,r,o,n)=>((...e)=>(...t)=>e.reduce((e,t)=>[t.call(null,...e)],t)[0])(M(e,t),E(r,o))(n)),T=(e,t)=>({get:r=>r.getAttribute(e)||t,set:(t,r)=>(t.setAttribute(e,r),r),connect:(r,o,n)=>{r[o]=null===r.getAttribute(e)?t:r.getAttribute(e),new MutationObserver(n).observe(r,{attributeFilter:[e]})}}),D={boolean:(e,t)=>Object.assign(Object.assign({},T(e,t)),{get:r=>r.hasAttribute(e)||t,set:(t,r)=>(r?t.setAttribute(e,""):t.removeAttribute(e),!!r),connect:(t,r,o)=>{t[r]=t.hasAttribute(e),new MutationObserver(o).observe(t,{attributeFilter:[e]})}}),number:(e,t)=>Object.assign(Object.assign({},T(e,t)),{get:r=>parseFloat(r.getAttribute(e))||t}),string:T},P=k((e,t)=>e&&D[typeof t]?D[typeof t](e,t):n(t)),A=e=>{return r=-e,o=e+1,t=Array.from("0".repeat(o-r),(e,t)=>r+t),[].concat(...t.map(e=>t.map(t=>[e,t])));var t,r,o},W=e=>{const{lineWidth:t}=e,r=isNaN(parseInt(t))?1:Math.max(parseInt(t),0);return A(r).map(e=>e.map(e=>e+"px").join(" ")).map(e=>e+"  var(--ue-border-blur, 0px) var(--ue-border-color, black)").join(", ")},q=r`
     <style>
         :host {
             display: block;
@@ -2900,387 +51,173 @@ const styles = html `
             cursor: default;
         }
     </style>
-`;
-const properties = {
-    lineWidth: reflect('line-width', 1)
-};
-const template = host => html `
-    ${styles}
-    <div style="text-shadow: ${shadowStyle(host)};"><slot></slot></div>
-`;
-const UeText = define('ue-text', Object.assign(Object.assign({}, properties), { render: lit(template) }));
+`,B={lineWidth:P("line-width",1)},N=a("ue-text",Object.assign(Object.assign({},B),{render:j(e=>r`
+    ${q}
+    <div style="text-shadow: ${W(e)};"><slot></slot></div>
+`)})),H=r`
+    <style>
+        * {
+            outline: none;
+        }
 
-/********** Utility functions **********/
-const handleEvent = curry((host, { type }) => {
-    switch (type) {
-        case 'focus':
-            host.focused = true;
-            break;
-        case 'blur':
-            host.focused = host.active = false;
-            break;
-        case 'mousedown':
-            host.active = true;
-            break;
-        case 'mouseup':
-            host.active = false;
-            host.checked = host.checkable ? !host.checked : false;
-            break;
-    }
-});
-const styles$1 = host => html `
+        :host([disabled]) {
+            pointer-events: none;
+        }
+
+        :host {
+            --ue-color-primary: #52d6f4;
+            --ue-color-primary-text: #363538;
+            --ue-background: transparent;
+
+            --ue-default-c-dark: #363538;
+            --ue-default-c-light: #f6f6f6;
+            --ue-default-c-primary: #52d6f4;
+            --ue-default-c-secondary: #408697;
+            --ue-default-c-contrast: #8d8c8a;
+
+            --ue-default-color: var(--ue-default-c-dark);
+            --ue-default-background-color: var(--ue-default-c-light);
+            --ue-default-border-color: var(--ue-default-c-dark);
+            --ue-default-border-width: 1px;
+            --ue-default-border-style: solid;
+            --ue-default-border-radius: 0.5em;
+
+            --ue-default-focus-color: var(--ue-default-c-primary);
+            --ue-default-focus-background-color: var(--ue-default-c-light);
+            --ue-default-focus-border-color: var(--ue-default-c-primary);
+            --ue-default-focus-border-style: solid;
+
+            --ue-default-active-color: var(--ue-default-c-secondary);
+            --ue-default-active-background-color: var(--ue-default-c-light);
+            --ue-default-active-border-color: var(--ue-default-c-secondary);
+            --ue-default-active-border-style: solid;
+
+            --ue-default-btn-width: 8em;
+            --ue-default-btn-height: 2em;
+
+            --ue-default-transition: background-color 0.25s, color 0.25s, transform 0.25s,
+                border 0.25s;
+        }
+
+        .reverse {
+            --ue-default-color: var(--ue-default-c-light);
+            --ue-default-background-color: var(--ue-default-c-dark);
+            --ue-default-border-color: var(--ue-default-c-dark);
+
+            --ue-default-focus-color: var(--ue-default-c-light);
+            --ue-default-focus-background-color: var(--ue-default-c-secondary);
+            --ue-default-focus-border-color: var(--ue-default-c-secondary);
+            --ue-default-focus-border-style: solid;
+
+            --ue-default-active-color: var(--ue-default-c-light);
+            --ue-default-active-background-color: var(--ue-default-c-primary);
+            --ue-default-active-border-color: var(--ue-default-c-primary);
+            --ue-default-active-border-style: solid;
+        }
+    </style>
+`,V=k((e,{type:t})=>{}),C=r`
     <style>
         :host {
-            display: flex;
+            display: inline-flex;
+            min-width: var(--ue-btn-width, var(--ue-default-btn-width));
+            height: var(--ue-btn-height, var(--ue-default-btn-height));
+            --ue-focus-color: var(--ue-color-primary-text);
+            --ue-focus-background: var(--ue-color-primary);
+        }
 
-            padding: 2px;
-            align-items: stretch;
-            outline: none;
-            width: var(--ue-btn-width);
-            height: var(--ue-btn-height);
-            pointer-events: ${host.disabled ? 'none' : ''};
+        :host([invert]) {
+            --ue-focus-color: var(--ue-color-primary);
+            --ue-focus-background: var(--ue-color-primary-text);
+        }
+
+        button:focus {
+            /* color: var(--ue-focus-color, var(--ue-default-focus-color));
+            background-color: var(
+                --ue-focus-background-color,
+                var(--ue-default-focus-background-color)
+            );
+            border-color: var(--ue-focus-border-color, var(--ue-default-focus-border-color));
+            border-style: var(--ue-focus-border-style, var(--ue-default-focus-border-style));*/
+            color: var(--ue-focus-color);
+            background: var(--ue-focus-background);
+        }
+
+        button:active,
+        .checked {
+            color: var(--ue-active-color, var(--ue-default-active-color));
+            background-color: var(
+                --ue-active-background-color,
+                var(--ue-default-active-background-color)
+            );
+            border-color: var(--ue-active-border-color, var(--ue-default-active-border-color));
+            border-style: var(--ue-active-border-style, var(--ue-default-active-border-style));
+        }
+
+        button:disabled {
+            pointer-events: none;
+            color: #888;
+            background-color: #444;
+            border: var(--ue-border-width) solid #888;
         }
 
         ::slotted(*) {
             user-select: none;
-            max-height: -webkit-fill-available;
-            max-width: -webkit-fill-available;
         }
 
-        div {
-            /* Fixed values */
-            display: flex;
-            flex-direction: column;
-            padding: 5px;
-            flex-grow: 1;
-            flex-shrink: inherit;
-
-            align-items: center;
+        button {
+            display: inline-flex;
             justify-content: center;
-            outline: none;
+            font: inherit;
 
-            color: var(--ue-color);
-            background-color: var(--ue-bg-color);
-            border: var(--ue-border);
-            border-radius: var(--ue-border-radius);
+            width: 100%;
+            height: 100%;
 
-            transition: var(--ue-transition);
-        }
+            color: var(--ue-color, var(--ue-default-color));
+            background-color: var(--ue-background-color, var(--ue-default-background-color));
+            border-color: var(--ue-border-color, var(--ue-default-border-color));
+            border-width: var(--ue-border-width, var(--ue-default-border-width));
+            border-style: var(--ue-border-style, var(--ue-default-border-style));
+            border-radius: var(--ue-border-radius, var(--ue-default-border-radius));
 
-        .focused {
-            --ue-color: var(--ue-focus-color);
-            --ue-bg-color: var(--ue-focus-bg-color);
-            --ue-border: var(--ue-focus-border);
-
-            transition: var(--ue-transition);
-        }
-
-        .active {
-            --ue-color: var(--ue-active-color);
-            --ue-bg-color: var(--ue-active-bg-color);
-            --ue-border: var(--ue-active-border);
-
-            transition: var(--ue-transition);
-        }
-
-        .disabled {
-            --ue-color: #888;
-            --ue-bg-color: #444;
-            --ue-border: #888;
-            pointer-events: none;
-        }
-
-        .checked {
-            --ue-color: var(--ue-active-color);
-            --ue-bg-color: var(--ue-active-bg-color);
-            --ue-border: var(--ue-active-border);
+            transition: var(--ue-transition, var(--ue-default-transition));
         }
     </style>
-`;
-const properties$1 = {
-    active: reflect('active', false),
-    checkable: false,
-    checked: reflect('checked', false),
-    disabled: reflect('disabled', false),
-    focused: reflect('focused', false)
-};
-function focusMe() {
-    if (this && this.focus)
-        this.focus();
-}
-function blurMe() {
-    if (this && this.blur)
-        this.blur();
-}
-// Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
-const template$1 = host => {
-    const { active, checked, disabled, focused } = host;
-    return html `
-        ${styles$1(host)}
-        <div
+`,I=Object.assign({active:P("active",!1),checked:P("checked",!1),disabled:P("disabled",!1),focused:P("focused",!1)},{inverted:!1,outlined:!1,glow:!1}),R=a("ue-button",Object.assign(Object.assign({},I),{render:j(e=>{const{active:t,checked:o,disabled:n,focused:a}=e;return r`
+        ${H} ${C}
+        <style>
+            ::slotted(*) {
+                user-select: none;
+            }
+        </style>
+        <button
             tabindex="0"
-            class=${classMap({ active, checked, disabled, focused })}
-            @mouseover=${focusMe}
-            @mouseleave=${blurMe}
-            @mousedown=${handleEvent(host)}
-            @mouseup=${handleEvent(host)}
-            @focus=${handleEvent(host)}
-            @blur=${handleEvent(host)}
+            class=${g({active:t,checked:o,focused:a})}
+            .disabled=${n}
+            @mouseover=${t=>{e.focused=!0,t.target.focus()}}
+            @mouseleave=${t=>{e.focused=!1,t.target.blur()}}
+            @focus=${V(e)}
+            @blur=${V(e)}
+            @mousedown=${V(e)}
+            @mouseup=${V(e)}
         >
             <slot></slot>
-        </div>
-    `;
-};
-const UeButton = define('ue-button', Object.assign(Object.assign({}, properties$1), { render: lit(template$1) }));
-
-const _GLOBAL = (function _init(obj) {
-    const data = obj._SHFTJS || {};
-    ['drags', 'drops'].forEach(type => {
-        if (!data[type])
-            data[type] = new WeakMap();
-    });
-    return (obj._SHFTJS = data);
-})(window);
-const EVENTINIT_KEYS = [
-    /* EventInit */
-    'bubbles',
-    'cancelable',
-    'composed',
-    /* UiEventInit */
-    'detail',
-    'view',
-    /* EventModifierInit */
-    'altKey',
-    'ctrlKey',
-    'metaKey',
-    'shiftKey',
-    /* MouseEventInit */
-    'button',
-    'buttons',
-    'clientX',
-    'clientY',
-    'movementX',
-    'movementY',
-    'relatedTarget',
-    'screenX',
-    'screenY'
-];
-/**
- * Copies and returns `MouseEventInit` properties from an existing `MouseEvent`.
- * @param e
- * @param overrides
- */
-function eventInit(e, overrides = {}) {
-    const init = {};
-    EVENTINIT_KEYS.forEach(key => {
-        init[key] = e[key];
-    });
-    return Object.assign(init, overrides);
-}
-/**
- * Constructs and dispatches a custom `MouseEvent` with property `shftTarget` set to `element`.
- * @param element
- * @param typeArg
- * @param options
- * @returns The constructed event.
- */
-function dispatch$2(element, typeArg, options = {}) {
-    const ev = new MouseEvent(typeArg, options);
-    ev.shftTarget = element;
-    element.dispatchEvent(ev);
-    return ev;
-}
-
-const { drags, drops } = _GLOBAL;
-function clamp$1(value, min = 0, max = 1) {
-    return Math.max(min, Math.min(value, max));
-}
-function matches(el, selectors) {
-    if (!selectors)
-        return true;
-    if (typeof selectors === 'string')
-        selectors = [selectors];
-    if (!(selectors instanceof Array))
-        return false;
-    return selectors.some(selector => el.matches(selector));
-}
-function overlapPct(el, other) {
-    const { left: l, right: r, top: t, bottom: b, height: h, width: w } = el.getBoundingClientRect();
-    const { left: otherL, right: otherR, top: otherT, bottom: otherB } = other.getBoundingClientRect();
-    const overlapW = clamp$1(Math.min(r, otherR) - Math.max(l, otherL), 0, w);
-    const overlapH = clamp$1(Math.min(b, otherB) - Math.max(t, otherT), 0, h);
-    return (overlapW * overlapH) / (w * h);
-}
-function is(el, type) {
-    const { drags, drops } = _GLOBAL;
-    switch (type) {
-        case 'drag':
-        case 'draggable':
-            return drags.has(el);
-        case 'drop':
-        case 'droppable':
-            return drops.has(el);
-        default:
-            return drags.has(el) || drops.has(el);
-    }
-}
-function clear(el) {
-    const { drags, drops } = _GLOBAL;
-    if (drags.has(el)) {
-        const { onmousedown, onmousemove, onmouseup } = drags.get(el);
-        el.removeEventListener('mousedown', onmousedown);
-        document.removeEventListener('mousemove', onmousemove);
-        document.removeEventListener('mouseup', onmouseup);
-    }
-    if (drops.has(el)) {
-        const { ondragstart, ondrag, ondragend } = drops.get(el);
-        document.removeEventListener('dragstart', ondragstart);
-        document.removeEventListener('drag', ondrag);
-        document.removeEventListener('dragend', ondragend);
-    }
-}
-function canDrop(droppable, dragged) {
-    const { accepts, overlap } = drops.get(droppable);
-    return (matches(dragged, accepts) && overlapPct(dragged, droppable) > overlap);
-}
-
-const { drags: drags$1 } = _GLOBAL;
-function drag(el) {
-    if (is(el, 'drag'))
-        return;
-    const data = {
-        onmousedown: _mousedownFn(el),
-        onmousemove: _mousemoveFn(el),
-        onmouseup: _mouseupFn(el)
-    };
-    el.addEventListener('mousedown', data.onmousedown);
-    drags$1.set(el, data);
-}
-function _mousedownFn(el) {
-    return (e) => {
-        const { onmousemove, onmouseup } = drags$1.get(el);
-        if (e.buttons === 1) {
-            dispatch$2(el, 'dragstart', eventInit(e));
-            document.addEventListener('mousemove', onmousemove);
-            document.addEventListener('mouseup', onmouseup, {
-                once: true
-            });
-        }
-    };
-}
-function _mousemoveFn(el) {
-    return (e) => {
-        dispatch$2(el, 'drag', eventInit(e));
-    };
-}
-function _mouseupFn(el) {
-    return (e) => {
-        const { onmousemove } = drags$1.get(el);
-        dispatch$2(el, 'dragend', eventInit(e));
-        document.removeEventListener('mousemove', onmousemove);
-    };
-}
-
-const { drops: drops$1 } = _GLOBAL;
-function drop(el, options) {
-    if (is(el, 'drop'))
-        return;
-    const { accepts, overlap } = Object.assign({ accepts: null, overlap: 0.5 }, options || {});
-    const data = {
-        content: new WeakSet(),
-        ondragstart: _dragstartFn(el),
-        ondrag: _dragFn(el),
-        ondragend: _dragendFn(el),
-        accepts,
-        overlap
-    };
-    document.addEventListener('dragstart', data.ondragstart);
-    drops$1.set(el, data);
-}
-function _dragstartFn(el) {
-    return (e) => {
-        if (!drops$1.has(el))
-            return;
-        const dragged = e.shftTarget;
-        const { accepts, ondrag, ondragend } = drops$1.get(el);
-        if (matches(dragged, accepts)) {
-            dispatch$2(el, 'dropopen', { relatedTarget: dragged });
-            dragged.addEventListener('drag', ondrag);
-            dragged.addEventListener('dragend', ondragend, { once: true });
-        }
-    };
-}
-function _dragFn(el) {
-    return (e) => {
-        const dragged = e.shftTarget;
-        const { accepts, content } = drops$1.get(el);
-        if (matches(dragged, accepts)) {
-            if (canDrop(el, dragged)) {
-                if (!content.has(dragged)) {
-                    content.add(dragged);
-                    dispatch$2(el, 'dragenter', eventInit(e, { relatedTarget: dragged }));
-                }
-                dispatch$2(el, 'dragover', eventInit(e, { relatedTarget: dragged }));
-            }
-            else {
-                if (content.has(dragged)) {
-                    content.delete(dragged);
-                    dispatch$2(el, 'dragleave', eventInit(e, { relatedTarget: dragged }));
-                }
-            }
-        }
-    };
-}
-function _dragendFn(el) {
-    return (e) => {
-        const dragged = e.shftTarget;
-        const { ondrag } = drops$1.get(el);
-        dispatch$2(el, 'dropclose', eventInit(e, { relatedTarget: dragged }));
-        dragged.removeEventListener('drag', ondrag);
-        if (canDrop(el, dragged)) {
-            dispatch$2(el, 'drop', eventInit(e, { relatedTarget: dragged }));
-        }
-    };
-}
-
-function defaultmove(e) {
-    const el = e.target;
-    if (!['absolute', 'relative'].some(pos => pos === el.style.position))
-        el.style.position = 'relative';
-    ['left', 'top'].forEach(axis => {
-        let pos = parseFloat(el.style[axis]) || 0;
-        pos += axis === 'left' ? e.movementX : e.movementY;
-        el.style[axis] = `${pos}px`;
-    });
-}
-var shft = {
-    drag,
-    drop,
-    util: { clear, defaultmove, is, matches },
-    _GLOBAL
-};
-
-const { drag: drag$1 } = shft;
-/********** Utility functions **********/
-const posToVal = ({ min = 0, max = 100, step = 1, clientWidth: width = 100 }) => pipe(remap(0, width)(min, max), clamp(min, max), roundTo(step));
-const increment = curry((host, pos) => posToVal(host)(pos) < host.value ? -host.step : posToVal(host)(pos) > host.value ? host.step : 0);
-const styles$2 = html `
+        </button>
+    `})})),_=function(e){const t=e._SHFTJS||{};return["drags","drops"].forEach(e=>{t[e]||(t[e]=new WeakMap)}),e._SHFTJS=t}(window),F=["bubbles","cancelable","composed","detail","view","altKey","ctrlKey","metaKey","shiftKey","button","buttons","clientX","clientY","movementX","movementY","relatedTarget","screenX","screenY"];function X(e,t={}){const r={};return F.forEach(t=>{r[t]=e[t]}),Object.assign(r,t)}function Y(e,t,r={}){const o=new MouseEvent(t,r);return o.shftTarget=e,e.dispatchEvent(o),o}const{drags:z,drops:K}=_;function U(e,t=0,r=1){return Math.max(t,Math.min(e,r))}function G(e,t){return!t||("string"==typeof t&&(t=[t]),t instanceof Array&&t.some(t=>e.matches(t)))}function J(e,t){const{drags:r,drops:o}=_;switch(t){case"drag":case"draggable":return r.has(e);case"drop":case"droppable":return o.has(e);default:return r.has(e)||o.has(e)}}function Q(e,t){const{accepts:r,overlap:o}=K.get(e);return G(t,r)&&function(e,t){const{left:r,right:o,top:n,bottom:a,height:i,width:s}=e.getBoundingClientRect(),{left:c,right:l,top:d,bottom:u}=t.getBoundingClientRect();return U(Math.min(o,l)-Math.max(r,c),0,s)*U(Math.min(a,u)-Math.max(n,d),0,i)/(s*i)}(t,e)>o}const{drags:Z}=_;function ee(e){return t=>{const{onmousemove:r,onmouseup:o}=Z.get(e);1===t.buttons&&(Y(e,"dragstart",X(t)),document.addEventListener("mousemove",r),document.addEventListener("mouseup",o,{once:!0}))}}function te(e){return t=>{Y(e,"drag",X(t))}}function re(e){return t=>{const{onmousemove:r}=Z.get(e);Y(e,"dragend",X(t)),document.removeEventListener("mousemove",r)}}const{drops:oe}=_;function ne(e){return t=>{if(!oe.has(e))return;const r=t.shftTarget,{accepts:o,ondrag:n,ondragend:a}=oe.get(e);G(r,o)&&(Y(e,"dropopen",{relatedTarget:r}),r.addEventListener("drag",n),r.addEventListener("dragend",a,{once:!0}))}}function ae(e){return t=>{const r=t.shftTarget,{accepts:o,content:n}=oe.get(e);G(r,o)&&(Q(e,r)?(n.has(r)||(n.add(r),Y(e,"dragenter",X(t,{relatedTarget:r}))),Y(e,"dragover",X(t,{relatedTarget:r}))):n.has(r)&&(n.delete(r),Y(e,"dragleave",X(t,{relatedTarget:r}))))}}function ie(e){return t=>{const r=t.shftTarget,{ondrag:o}=oe.get(e);Y(e,"dropclose",X(t,{relatedTarget:r})),r.removeEventListener("drag",o),Q(e,r)&&Y(e,"drop",X(t,{relatedTarget:r}))}}var se={drag:function(e){if(J(e,"drag"))return;const t={onmousedown:ee(e),onmousemove:te(e),onmouseup:re(e)};e.addEventListener("mousedown",t.onmousedown),Z.set(e,t)},drop:function(e,t){if(J(e,"drop"))return;const{accepts:r,overlap:o}=Object.assign({accepts:null,overlap:.5},t||{}),n={content:new WeakSet,ondragstart:ne(e),ondrag:ae(e),ondragend:ie(e),accepts:r,overlap:o};document.addEventListener("dragstart",n.ondragstart),oe.set(e,n)},util:{clear:function(e){const{drags:t,drops:r}=_;if(t.has(e)){const{onmousedown:r,onmousemove:o,onmouseup:n}=t.get(e);e.removeEventListener("mousedown",r),document.removeEventListener("mousemove",o),document.removeEventListener("mouseup",n)}if(r.has(e)){const{ondragstart:t,ondrag:o,ondragend:n}=r.get(e);document.removeEventListener("dragstart",t),document.removeEventListener("drag",o),document.removeEventListener("dragend",n)}},defaultmove:function(e){const t=e.target;["absolute","relative"].some(e=>e===t.style.position)||(t.style.position="relative"),["left","top"].forEach(r=>{let o=parseFloat(t.style[r])||0;o+="left"===r?e.movementX:e.movementY,t.style[r]=o+"px"})},is:J,matches:G},_GLOBAL:_};const{drag:ce}=se,le=r`
     <style>
         :host {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 1em;
+            height: 3em;
             cursor: default;
-            padding: 0.5em;
         }
 
         .slider-bar {
             cursor: default;
             position: relative;
             width: 100%;
-            height: 50%;
-            background-color: var(--ue-bg-color);
+            height: 0.5em;
+            background: var(--ue-default-c-primary);
             touch-action: none;
             display: flex;
             align-items: center;
@@ -3288,68 +225,30 @@ const styles$2 = html `
 
         .handle {
             cursor: default;
-            width: 0.8em;
-            height: 300%;
-            transform: translate(-50%, 0);
-            background-color: var(--ue-color);
-            border: var(--ue-border);
-            border-radius: var(--ue-border-radius);
-            position: relative;
+            width: 2.5em;
+            height: 2.5em;
+            /* background: var(--ue-default-c-primary); */
+            background-color: rgba(255, 0, 0, 0.3);
+            clip-path: circle(1em);
+            position: absolute;
+            left: 0;
         }
     </style>
-`;
-const properties$2 = {
-    min: 0,
-    max: 100,
-    step: 1,
-    value: {
-        get: (host, lastValue) => lastValue || 0,
-        set: ({ step }, value) => roundTo(step, value),
-        observe: (host, value, lastValue) => {
-            const { min, max, step } = host;
-            dispatch(host, 'change', {
-                bubbles: true,
-                composed: true,
-                detail: { value, min, max, step }
-            });
-        }
-    }
-};
-const template$2 = host => {
-    const { min, max, value } = host;
-    return html `
-        ${styles$2}
+`,de={min:P("min",0),max:P("max",100),step:P("step",1),value:Object.assign(Object.assign({},P("value",0)),{observe:(e,t)=>{i(e,"changed",{bubbles:!0,composed:!0,detail:{value:t}})}})},ue=(e,{clientX:t})=>{const r=t-e.getBoundingClientRect().left,{min:o,max:n,step:a,clientWidth:i}=e;e.value=$(o,n,L(a,S(0,i,o,n,r)))},fe=a("ue-slider",Object.assign(Object.assign({},de),{render:j(e=>{const{min:t,max:o,value:n,clientWidth:a}=e;return r`
+        ${H} ${le}
         <div
             class="slider-bar"
-            @mousedown=${({ path, offsetX }) => {
-        if (path[0] === select('.slider-bar', host.shadowRoot)) {
-            host.value += increment(host, offsetX);
-            repeatUntil(() => {
-                host.value += increment(host, offsetX);
-            }, 'mouseup');
-        }
-    }}
+            @drag=${t=>ue(e,t)}
+            @mousedown=${t=>ue(e,t)}
         >
             <div
                 tabindex="0"
                 class="handle"
-                style="left: ${pipe(remap(min, max)(0, 100), clamp(0, 100))(value)}%"
-                @drag=${({ offsetX, target: { offsetLeft } }) => {
-        host.value = posToVal(host)(offsetX + offsetLeft);
-    }}
+                style="transform: translateX(${$(0,a,S(t,o,0,a,n))}px) translateX(-50%);"
             ></div>
         </div>
-        ${once(() => {
-        findElement('.handle', host.shadowRoot)
-            .then(drag$1)
-            .catch(console.log);
-    })}
-    `;
-};
-const UeSlider = define('ue-slider', Object.assign(Object.assign({}, properties$2), { render: lit(template$2) }));
-
-// Arrow
-const arrow = svg `
+        ${O(()=>{((e,t=document,r=1e3)=>new Promise((o,n)=>{let a;const i=setTimeout(()=>{a=!0},r);!function r(){if(a)return n();let s=t.querySelector(e);if(s)return clearTimeout(i),o(s);requestAnimationFrame(r)}()}))(".slider-bar",e.shadowRoot).then(ce).catch(console.log)})}
+    `})})),pe={arrow:o`
     <svg
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
@@ -3363,11 +262,7 @@ const arrow = svg `
 			c7.212,0,13.96-3.572,19.024-8.632l218.932-219.328c5.072-5.064,7.856-12.016,7.864-19.224
 			C491.996,136.902,489.204,130.046,484.132,124.986z"/>
     </svg>
-`;
-const shapes = {
-    arrow
-};
-const styles$3 = html `
+`},me=r`
     <style>
         :host {
             display: block;
@@ -3384,129 +279,54 @@ const styles$3 = html `
             position: absolute;
         }
     </style>
-`;
-const properties$3 = { shape: 'arrow' };
-const template$3 = host => html `
-        ${styles$3} ${shapes[host.shape]}
-    `;
-const UeIcon = define('ue-icon', Object.assign(Object.assign({}, properties$3), { render: lit(template$3) }));
-
-const BaseItem = {
-    active: true,
-    selected: true
-};
-const ListItem = Object.assign(Object.assign({}, BaseItem), { label: ({ innerText }) => innerText, render: lit(() => html `
-                <slot></slot>
-            `) });
-const ContentItem = Object.assign(Object.assign({}, BaseItem), { label: reflect('label', ''), render: lit(({ selected }) => html `
-            <style>
-                :host {
-                    flex-grow: ${selected ? 1 : 0};
-                }
-            </style>
-            ${selected
-        ? html `
-                      <slot></slot>
-                  `
-        : html ``}
-        `) });
-const UeListItem = define('ue-list-item', ListItem);
-const UeContentItem = define('ue-content-item', ContentItem);
-
-const hasProps = curry((propList, hybrid) => propList.every(hybrid.hasOwnProperty, hybrid));
-const singleSelect = {
-    get: ({ items }, lastValue) => items.map(item => item.selected).indexOf(true),
-    set: ({ items }, value) => items.map((item, index) => (item.selected = index === value)).indexOf(true),
-    connect: (host, key) => {
-        host[key] = host.preselect || 0;
-    },
-    observe: (host, selected) => {
-        const { items } = host;
-        if (items[selected])
-            dispatch(host, 'select', {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    index: selected,
-                    label: items[selected].label,
-                    item: items[selected]
-                }
-            });
-    }
-};
-const BaseGroup = {
-    items: children(hasProps(['label', 'selected']))
-};
-const SingleSelectGroup = Object.assign(Object.assign({}, BaseGroup), { preselect: reflect('preselect', 0), selected: singleSelect, selectedItem: ({ items }) => items.find(item => item.selected) });
-const itemList = curry((itemTemplate, host) => html `
-            ${host.items.map(itemTemplate(host))}
-        `);
-const buttonItemTemplate = host => ({ selected, label }, index) => html `
+`,he=a("ue-icon",Object.assign(Object.assign({},{shape:"arrow"}),{render:j(e=>r`
+        ${me} ${pe[e.shape]}
+    `)})),ve={_ue_item:!0,active:P("active",!0),selected:P("selected",!1)},be=Object.assign(Object.assign({},ve),{value:P("value",""),render:j(()=>r`<slot></slot>`)}),ge=Object.assign(Object.assign({},ve),{icon:P("icon",""),label:P("label",""),render:j(({active:e})=>r`${e?r`<slot></slot>`:r``}`)}),ye={items:s(e=>void 0!==e._ue_item),selected:({items:e})=>e.filter(e=>e.selected),active:({items:e})=>e.filter(e=>e.active),selectedIdx:({items:e})=>e.filter(e=>e.selected).map(t=>e.indexOf(t)),activeIdx:({items:e})=>e.filter(e=>e.active).map(t=>e.indexOf(t))},we=a("ue-list-item",be),xe=a("ue-content-item",ge),Oe={get:({items:e},t)=>e.map(e=>e.selected).indexOf(!0),set:({items:e},t)=>e.map((e,r)=>e.selected=r===t).indexOf(!0),connect:(e,t)=>{e[t]=e.preselect||0},observe:(e,t)=>{const{items:r}=e;console.log("changed to "+t),r[t]&&i(e,"changed",{bubbles:!0,composed:!0,detail:{index:t,label:r[t].label,item:r[t]}})}},je={items:s(e=>e.ueItem)},ke=Object.assign(Object.assign({},je),{preselect:P("preselect",0),selected:Oe,selectedItem:({items:e})=>e.find(e=>e.selected)}),Ee=k((e,t)=>r`
+            ${t.items.map(e(t))}
+        `)(e=>({selected:t,innerText:o},n)=>r`
     <ue-button
-        .checked=${selected}
-        @click=${() => {
-    host.selected = index;
-}}
-        style="pointer-events: ${selected ? 'none' : 'inherit'}"
+        .checked=${t}
+        @click=${()=>{e.selected=n}}
+        style="pointer-events: ${t?"none":"inherit"}"
     >
-        <slot name="item-label-${index}">${label}</slot>
+        <slot name="item-label-${n}">${o}</slot>
     </ue-button>
-`;
-const buttonList = itemList(buttonItemTemplate);
-
-const properties$4 = Object.assign(Object.assign({}, SingleSelectGroup), { location: reflect('location', 'left'), direction: host => (['left', 'right'].includes(host.location) ? 'column' : 'row') });
-const styles$4 = html `
+`),Me=Object.assign(Object.assign({},ke),{location:P("location","left")}),$e=r`
     <style>
         :host {
-            display: block;
+            display: flex;
+            flex-direction: column;
+        }
+
+        :host([location='left']) {
+            flex-direction: row;
+        }
+
+        :host([location='right']) {
+            flex-direction: row-reverse;
+        }
+
+        :host([location='bottom']) {
+            flex-direction: column-reverse;
         }
 
         ue-button {
-            padding: 0;
+            margin: 0.25em;
         }
 
         div {
             display: flex;
         }
-
-        .left {
-            flex-direction: row;
-        }
-
-        .right {
-            flex-direction: row-reverse;
-        }
-
-        .top {
-            flex-direction: column;
-        }
-
-        .bottom {
-            flex-direction: column-reverse;
-        }
     </style>
-`;
-const template$4 = host => html `
-        ${styles$4}
-        <div class=${classMap({ [host.location]: true })}>
-            <div style="flex-direction: ${host.direction};">${buttonList(host)}</div>
-            <slot></slot>
+`,Le=a("ue-tab-group",Object.assign(Object.assign({},Me),{render:j(e=>r`
+        ${$e}
+        <div
+            style="flex-direction: ${["left","right"].includes(e.location)?"column":"row"};"
+        >
+            ${Ee(e)}
         </div>
-    `;
-const UeTabGroup = define('ue-tab-group', Object.assign(Object.assign({}, properties$4), { render: lit(template$4) }));
-
-const properties$5 = Object.assign(Object.assign({}, SingleSelectGroup), { expand: {
-        connect: (host, key) => {
-            host[key] = false;
-        },
-        observe: (host, value) => {
-            if (value)
-                return listen(document, 'click', () => {
-                    host.expand = false;
-                }, { once: true });
-        }
-    } });
-const styles$5 = html `
+        <slot></slot>
+    `)})),Se=Object.assign(Object.assign({},ke),{open:{connect:(e,t)=>{e[t]=!1},observe:(e,t)=>{if(t)return r=document,o="click",n=()=>{e.open=!1},a={once:!0},r.addEventListener(o,n,a),()=>r.removeEventListener(o,n,a);var r,o,n,a}}}),Te=r`
     <style>
         :host {
             display: flex;
@@ -3533,64 +353,23 @@ const styles$5 = html `
             position: relative;
         }
     </style>
-`;
-const closeStyle = {
-    border: '1px solid transparent'
-};
-const openStyle = {
-    border: '1px solid var(--ue-active-bg-color)'
-};
-const template$5 = host => {
-    const { expand, items, selectedItem } = host;
-    return html `
-        ${styles$5}
-        <div class="container" style=${styleMap(expand ? openStyle : closeStyle)}>
+`,De={border:"1px solid transparent"},Pe={border:"1px solid var(--ue-active-bg-color)"},Ae=a("ue-dropdown",Object.assign(Object.assign({},Se),{render:j(e=>{const{open:t,selectedItem:o}=e;return r`
+        ${Te}
+        <div class="container" style=${w(t?Pe:De)}>
             <ue-button
-                .checked=${expand}
-                @click=${() => {
-        host.expand = !expand;
-    }}
-                >${selectedItem ? selectedItem.label : ''}<ue-icon></ue-icon
+                .checked=${t}
+                @click=${()=>{e.open=!t}}
+                >${o?o.label:""}<ue-icon></ue-icon
             ></ue-button>
         </div>
         <div class="container">
-            <ue-drawer .expand=${expand} direction="down">
-                <div style=${styleMap(expand ? openStyle : closeStyle)}>
-                    ${buttonList(host)}
+            <ue-drawer .open=${t} direction="down">
+                <div style=${w(t?Pe:De)}>
+                    ${Ee(e)}
                 </div>
             </ue-drawer>
         </div>
-    `;
-};
-const UeDropdown = define('ue-dropdown', Object.assign(Object.assign({}, properties$5), { render: lit(template$5) }));
-
-function show(host, event) {
-    if (!host.active) {
-        host.pos = [event.clientX, event.clientY];
-        host.active = true;
-    }
-}
-function hide(host, event) {
-    host.active = false;
-}
-const properties$6 = {
-    pos: [0, 0],
-    delay: 1,
-    active: {
-        connect: (host, key, invalidate) => {
-            const parent = host.parentElement;
-            if (parent) {
-                const stopshow = listen(parent, 'mouseover', e => show(host, e));
-                const stophide = listen(parent, 'mouseout', e => hide(host));
-                return () => {
-                    stopshow();
-                    stophide();
-                };
-            }
-        }
-    }
-};
-const template$6 = host => html `
+    `})})),We={for:P("for",""),target:{get:e=>e.for?document.querySelector(e.for):e.parentElement,connect:e=>c(e.target,{content:e.firstChild,allowHTML:!0,followCursor:"initial",interactive:!0,trigger:"click"}).destroy}},qe=a("ue-tooltip",Object.assign(Object.assign({},We),{render:j(()=>r`
     <style>
         div {
             height: auto;
@@ -3600,77 +379,41 @@ const template$6 = host => html `
             background-color: var(--ue-bg-color);
         }
     </style>
-    ${host.active
-    ? html `
-              <div style="left: ${host.pos[0]}px; top: ${host.pos[1]}px">
-                  <slot></slot>
-              </div>
-          `
-    : html ``}
-`;
-const UeTooltip = define('ue-tooltip', Object.assign(Object.assign({}, properties$6), { render: lit(template$6) }));
-
-const properties$7 = {
-    value: {
-        get: (host, lastValue) => lastValue || 0,
-        set: (host, value, lastValue) => {
-            if (value !== lastValue)
-                dispatch(host, 'change');
-            if (value >= 100)
-                dispatch(host, 'full');
-            return value;
-        }
-    },
-    duration: 1,
-    delay: 0
-};
-const template$7 = host => {
-    const { value, duration, delay } = host;
-    return html `
+`)})),Be={value:Object.assign(Object.assign({},P("value",0)),{observe:(e,t,r)=>{t!==r&&i(e,"change",{bubbles:!0,composed:!0,detail:{value:t}})}}),duration:P("duration",1),delay:P("delay",0)},Ne=a("ue-progress-bar",Object.assign(Object.assign({},Be),{render:j(e=>{const{value:t,duration:o,delay:n}=e;return r`
+        ${H}
         <style>
             :host {
                 display: flex;
-                font-size: 0.8em;
-                height: 1.25em;
-                padding: 4px;
-            }
-
-            div {
-                height: -webkit-fill-available;
+                height: 0.75em;
+                width: 100%;
             }
 
             #bg {
                 background-color: var(--ue-bg-color);
-                border: var(--ue-border);
-                border-radius: var(--ue-border-radius);
+                border-color: var(--ue-border-color, var(--ue-default-border-color));
+                border-width: var(--ue-border-width, var(--ue-default-border-width));
+                border-style: var(--ue-border-style, var(--ue-default-border-style));
+                border-radius: var(--ue-border-radius, var(--ue-default-border-radius));
                 width: 100%;
                 overflow: hidden;
             }
 
             #bar {
                 position: relative;
-                background-color: var(--ue-color);
-                width: ${clamp(0, 100, value)}%;
-                transition: width ${clamp(0, Infinity, duration)}s ease
-                    ${clamp(0, Infinity, delay)}s;
+                height: 100%;
+                background-color: var(--ue-color, var(--ue-default-c-primary, #444));
+                width: ${$(0,100,t)}%;
+                transition: width ${$(0,1/0,o)}s ease
+                    ${$(0,1/0,n)}s;
             }
         </style>
         <div id="bg">
             <div
                 id="bar"
-                @transitionend=${() => {
-        dispatch(host, 'updated');
-        if (value >= 100)
-            dispatch(host, 'completed');
-    }}
+                @transitionend=${()=>{i(e,"updated")}}
             ></div>
         </div>
-    `;
-};
-const UeProgressBar = define('ue-progress-bar', Object.assign(Object.assign({}, properties$7), { render: lit(template$7) }));
-
-const properties$8 = Object.assign(Object.assign({}, SingleSelectGroup), { direction: reflect('direction', 'column') });
-const styles$6 = html `
+    `})})),He=Object.assign(Object.assign({},ke),{direction:P("direction","column")}),Ve=r`
     <style>
         :host {
             display: flex;
@@ -3680,20 +423,12 @@ const styles$6 = html `
             padding: 0;
         }
     </style>
-`;
-const UeSelectGrp = define('ue-select-grp', Object.assign(Object.assign({}, properties$8), { render: lit(host => html `
-                ${styles$6}
-                <div style="display: flex; flex-direction: ${host.direction}">
-                    ${buttonList(host)}
+`,Ce=a("ue-select-grp",Object.assign(Object.assign({},He),{render:j(e=>r`
+                ${Ve}
+                <div style="display: flex; flex-direction: ${e.direction}">
+                    ${Ee(e)}
                 </div>
-            `) }));
-
-const properties$9 = {
-    expand: false,
-    direction: reflect('direction', 'right'),
-    duration: reflect('duration', 0.2)
-};
-const styles$7 = html `
+            `)})),Ie={open:!1,direction:P("direction","right"),duration:P("duration",.2)},Re=r`
     <style>
         :host {
             display: block;
@@ -3726,20 +461,25 @@ const styles$7 = html `
             align-items: center;
         }
 
-        .expand {
+        .open {
             transform: translate(0, 0);
         }
     </style>
-`;
-const template$8 = ({ direction, duration, expand }) => html `
-        ${styles$7}
+`,_e=a("ue-drawer",Object.assign(Object.assign({},Ie),{render:j(({direction:e,duration:t,open:o})=>r`
+        ${Re}
         <div
-            class=${classMap({ expand, [direction]: true })}
-            style="transition: transform ${duration}s;"
+            class=${g({open:o,[e]:!0})}
+            style="transition: transform ${t}s;"
         >
             <slot></slot>
         </div>
-    `;
-const UeDrawer = define('ue-drawer', Object.assign(Object.assign({}, properties$9), { render: lit(template$8) }));
-
-export { UeButton, UeContentItem, UeDrawer, UeDropdown, UeIcon, UeListItem, UeProgressBar, UeSelectGrp, UeSlider, UeTabGroup, UeText, UeTooltip };
+    `)})),Fe=Object.assign(Object.assign({},ye),{multi:P("multi",!1)}),Xe=a("ue-list",Object.assign(Object.assign({},Fe),{render:j(e=>r`
+        ${H}
+        <div>
+            ${e.items.map(t=>r`
+                        <ue-button .checked=${t.selected} @click=${()=>((e,t)=>{e.multi?t.selected=!t.selected:e.items.forEach(e=>{e.selected=e===t}),i(e,"changed",{bubbles:!0,composed:!0,detail:e})})(e,t)}
+                            >${t.innerText}</ue-button
+                        >
+                    `)}
+        </div>
+    `)}));function Ye(e){var t=e.getBoundingClientRect();return{width:t.width,height:t.height,top:t.top,right:t.right,bottom:t.bottom,left:t.left,x:t.left,y:t.top}}function ze(e){if("[object Window]"!==e.toString()){var t=e.ownerDocument;return t?t.defaultView:window}return e}function Ke(e){var t=ze(e);return{scrollLeft:t.pageXOffset,scrollTop:t.pageYOffset}}function Ue(e){return e instanceof ze(e).Element||e instanceof Element}function Ge(e){return e instanceof ze(e).HTMLElement||e instanceof HTMLElement}function Je(e){return e?(e.nodeName||"").toLowerCase():null}function Qe(e){return(Ue(e)?e.ownerDocument:e.document).documentElement}function Ze(e){return Ye(Qe(e)).left+Ke(e).scrollLeft}function et(e){return ze(e).getComputedStyle(e)}function tt(e){var t=et(e),r=t.overflow,o=t.overflowX,n=t.overflowY;return/auto|scroll|overlay|hidden/.test(r+n+o)}function rt(e,t,r){void 0===r&&(r=!1);var o,n,a=Qe(t),i=Ye(e),s={scrollLeft:0,scrollTop:0},c={x:0,y:0};return r||(("body"!==Je(t)||tt(a))&&(s=(o=t)!==ze(o)&&Ge(o)?{scrollLeft:(n=o).scrollLeft,scrollTop:n.scrollTop}:Ke(o)),Ge(t)?((c=Ye(t)).x+=t.clientLeft,c.y+=t.clientTop):a&&(c.x=Ze(a))),{x:i.left+s.scrollLeft-c.x,y:i.top+s.scrollTop-c.y,width:i.width,height:i.height}}function ot(e){return{x:e.offsetLeft,y:e.offsetTop,width:e.offsetWidth,height:e.offsetHeight}}function nt(e){return"html"===Je(e)?e:e.assignedSlot||e.parentNode||e.host||Qe(e)}function at(e,t){void 0===t&&(t=[]);var r=function e(t){return["html","body","#document"].indexOf(Je(t))>=0?t.ownerDocument.body:Ge(t)&&tt(t)?t:e(nt(t))}(e),o="body"===Je(r),n=ze(r),a=o?[n].concat(n.visualViewport||[],tt(r)?r:[]):r,i=t.concat(a);return o?i:i.concat(at(nt(a)))}function it(e){return["table","td","th"].indexOf(Je(e))>=0}function st(e){return Ge(e)&&"fixed"!==et(e).position?e.offsetParent:null}function ct(e){for(var t=ze(e),r=st(e);r&&it(r);)r=st(r);return r&&"body"===Je(r)&&"static"===et(r).position?t:r||t}var lt="top",dt="bottom",ut="right",ft="left",pt=[lt,dt,ut,ft],mt=pt.reduce((function(e,t){return e.concat([t+"-start",t+"-end"])}),[]),ht=[].concat(pt,["auto"]).reduce((function(e,t){return e.concat([t,t+"-start",t+"-end"])}),[]),vt=["beforeRead","read","afterRead","beforeMain","main","afterMain","beforeWrite","write","afterWrite"];function bt(e){var t=new Map,r=new Set,o=[];return e.forEach((function(e){t.set(e.name,e)})),e.forEach((function(e){r.has(e.name)||function e(n){r.add(n.name),[].concat(n.requires||[],n.requiresIfExists||[]).forEach((function(o){if(!r.has(o)){var n=t.get(o);n&&e(n)}})),o.push(n)}(e)})),o}function gt(e){for(var t=arguments.length,r=new Array(t>1?t-1:0),o=1;o<t;o++)r[o-1]=arguments[o];return[].concat(r).reduce((function(e,t){return e.replace(/%s/,t)}),e)}var yt='Popper: modifier "%s" provided an invalid %s property, expected %s but got %s',wt=["name","enabled","phase","fn","effect","requires","options"];function xt(e){return e.split("-")[0]}var Ot="Popper: Invalid reference or popper argument provided. They must be either a DOM element or virtual element.",jt={placement:"bottom",modifiers:[],strategy:"absolute"};function kt(){for(var e=arguments.length,t=new Array(e),r=0;r<e;r++)t[r]=arguments[r];return!t.some((function(e){return!(e&&"function"==typeof e.getBoundingClientRect)}))}function Et(e){void 0===e&&(e={});var t=e,r=t.defaultModifiers,o=void 0===r?[]:r,n=t.defaultOptions,a=void 0===n?jt:n;return function(e,t,r){void 0===r&&(r=a);var n,i,s={placement:"bottom",orderedModifiers:[],options:Object.assign({},jt,{},a),modifiersData:{},elements:{reference:e,popper:t},attributes:{},styles:{}},c=[],l=!1,d={state:s,setOptions:function(r){u(),s.options=Object.assign({},a,{},s.options,{},r),s.scrollParents={reference:Ue(e)?at(e):e.contextElement?at(e.contextElement):[],popper:at(t)};var n,i,l,f=function(e){var t=bt(e);return vt.reduce((function(e,r){return e.concat(t.filter((function(e){return e.phase===r})))}),[])}(function(e){var t=e.reduce((function(e,t){var r=e[t.name];return e[t.name]=r?Object.assign({},r,{},t,{options:Object.assign({},r.options,{},t.options),data:Object.assign({},r.data,{},t.data)}):t,e}),{});return Object.keys(t).map((function(e){return t[e]}))}([].concat(o,s.options.modifiers)));if(s.orderedModifiers=f.filter((function(e){return e.enabled})),"production"!==process.env.NODE_ENV){if(function(e){e.forEach((function(t){Object.keys(t).forEach((function(r){switch(r){case"name":"string"!=typeof t.name&&console.error(gt(yt,String(t.name),'"name"','"string"','"'+String(t.name)+'"'));break;case"enabled":"boolean"!=typeof t.enabled&&console.error(gt(yt,t.name,'"enabled"','"boolean"','"'+String(t.enabled)+'"'));case"phase":vt.indexOf(t.phase)<0&&console.error(gt(yt,t.name,'"phase"',"either "+vt.join(", "),'"'+String(t.phase)+'"'));break;case"fn":"function"!=typeof t.fn&&console.error(gt(yt,t.name,'"fn"','"function"','"'+String(t.fn)+'"'));break;case"effect":"function"!=typeof t.effect&&console.error(gt(yt,t.name,'"effect"','"function"','"'+String(t.fn)+'"'));break;case"requires":Array.isArray(t.requires)||console.error(gt(yt,t.name,'"requires"','"array"','"'+String(t.requires)+'"'));break;case"requiresIfExists":Array.isArray(t.requiresIfExists)||console.error(gt(yt,t.name,'"requiresIfExists"','"array"','"'+String(t.requiresIfExists)+'"'));break;case"options":case"data":break;default:console.error('PopperJS: an invalid property has been provided to the "'+t.name+'" modifier, valid properties are '+wt.map((function(e){return'"'+e+'"'})).join(", ")+'; but "'+r+'" was provided.')}t.requires&&t.requires.forEach((function(r){null==e.find((function(e){return e.name===r}))&&console.error(gt('Popper: modifier "%s" requires "%s", but "%s" modifier is not available',String(t.name),r,r))}))}))}))}((n=[].concat(f,s.options.modifiers),i=function(e){return e.name},l=new Set,n.filter((function(e){var t=i(e);if(!l.has(t))return l.add(t),!0})))),"auto"===xt(s.options.placement))s.orderedModifiers.find((function(e){return"flip"===e.name}))||console.error(['Popper: "auto" placements require the "flip" modifier be',"present and enabled to work."].join(" "));var p=et(t);[p.marginTop,p.marginRight,p.marginBottom,p.marginLeft].some((function(e){return parseFloat(e)}))&&console.warn(['Popper: CSS "margin" styles cannot be used to apply padding',"between the popper and its reference element or boundary.","To replicate margin, use the `offset` modifier, as well as","the `padding` option in the `preventOverflow` and `flip`","modifiers."].join(" "))}return s.orderedModifiers.forEach((function(e){var t=e.name,r=e.options,o=void 0===r?{}:r,n=e.effect;if("function"==typeof n){var a=n({state:s,name:t,instance:d,options:o});c.push(a||function(){})}})),d.update()},forceUpdate:function(){if(!l){var e=s.elements,t=e.reference,r=e.popper;if(kt(t,r)){s.rects={reference:rt(t,ct(r),"fixed"===s.options.strategy),popper:ot(r)},s.reset=!1,s.placement=s.options.placement,s.orderedModifiers.forEach((function(e){return s.modifiersData[e.name]=Object.assign({},e.data)}));for(var o=0,n=0;n<s.orderedModifiers.length;n++){if("production"!==process.env.NODE_ENV&&(o+=1)>100){console.error("Popper: An infinite loop in the modifiers cycle has been detected! The cycle has been interrupted to prevent a browser crash.");break}if(!0!==s.reset){var a=s.orderedModifiers[n],i=a.fn,c=a.options,u=void 0===c?{}:c,f=a.name;"function"==typeof i&&(s=i({state:s,options:u,name:f,instance:d})||s)}else s.reset=!1,n=-1}}else"production"!==process.env.NODE_ENV&&console.error(Ot)}},update:(n=function(){return new Promise((function(e){d.forceUpdate(),e(s)}))},function(){return i||(i=new Promise((function(e){Promise.resolve().then((function(){i=void 0,e(n())}))}))),i}),destroy:function(){u(),l=!0}};if(!kt(e,t))return"production"!==process.env.NODE_ENV&&console.error(Ot),d;function u(){c.forEach((function(e){return e()})),c=[]}return d.setOptions(r).then((function(e){!l&&r.onFirstUpdate&&r.onFirstUpdate(e)})),d}}var Mt={passive:!0};function $t(e){return e.split("-")[1]}function Lt(e){return["top","bottom"].indexOf(e)>=0?"x":"y"}function St(e){var t,r=e.reference,o=e.element,n=e.placement,a=n?xt(n):null,i=n?$t(n):null,s=r.x+r.width/2-o.width/2,c=r.y+r.height/2-o.height/2;switch(a){case lt:t={x:s,y:r.y-o.height};break;case dt:t={x:s,y:r.y+r.height};break;case ut:t={x:r.x+r.width,y:c};break;case ft:t={x:r.x-o.width,y:c};break;default:t={x:r.x,y:r.y}}var l=a?Lt(a):null;if(null!=l){var d="y"===l?"height":"width";switch(i){case"start":t[l]=Math.floor(t[l])-Math.floor(r[d]/2-o[d]/2);break;case"end":t[l]=Math.floor(t[l])+Math.ceil(r[d]/2-o[d]/2)}}return t}var Tt={top:"auto",right:"auto",bottom:"auto",left:"auto"};function Dt(e){var t,r=e.popper,o=e.popperRect,n=e.placement,a=e.offsets,i=e.position,s=e.gpuAcceleration,c=e.adaptive,l=function(e){var t=e.x,r=e.y,o=window.devicePixelRatio||1;return{x:Math.round(t*o)/o||0,y:Math.round(r*o)/o||0}}(a),d=l.x,u=l.y,f=a.hasOwnProperty("x"),p=a.hasOwnProperty("y"),m=ft,h=lt,v=window;if(c){var b=ct(r);b===ze(r)&&(b=Qe(r)),n===lt&&(h=dt,u-=b.clientHeight-o.height,u*=s?1:-1),n===ft&&(m=ut,d-=b.clientWidth-o.width,d*=s?1:-1)}var g,y=Object.assign({position:i},c&&Tt);return s?Object.assign({},y,((g={})[h]=p?"0":"",g[m]=f?"0":"",g.transform=(v.devicePixelRatio||1)<2?"translate("+d+"px, "+u+"px)":"translate3d("+d+"px, "+u+"px, 0)",g)):Object.assign({},y,((t={})[h]=p?u+"px":"",t[m]=f?d+"px":"",t.transform="",t))}var Pt={left:"right",right:"left",bottom:"top",top:"bottom"};function At(e){return e.replace(/left|right|bottom|top/g,(function(e){return Pt[e]}))}var Wt={start:"end",end:"start"};function qt(e){return e.replace(/start|end/g,(function(e){return Wt[e]}))}function Bt(e){return parseFloat(e)||0}function Nt(e){var t=ze(e),r=function(e){var t=Ge(e)?et(e):{};return{top:Bt(t.borderTopWidth),right:Bt(t.borderRightWidth),bottom:Bt(t.borderBottomWidth),left:Bt(t.borderLeftWidth)}}(e),o="html"===Je(e),n=Ze(e),a=e.clientWidth+r.right,i=e.clientHeight+r.bottom;return o&&t.innerHeight-e.clientHeight>50&&(i=t.innerHeight-r.bottom),{top:o?0:e.clientTop,right:e.clientLeft>r.left?r.right:o?t.innerWidth-a-n:e.offsetWidth-a,bottom:o?t.innerHeight-i:e.offsetHeight-i,left:o?n:e.clientLeft}}function Ht(e,t){var r=Boolean(t.getRootNode&&t.getRootNode().host);if(e.contains(t))return!0;if(r){var o=t;do{if(o&&e.isSameNode(o))return!0;o=o.parentNode||o.host}while(o)}return!1}function Vt(e){return Object.assign({},e,{left:e.x,top:e.y,right:e.x+e.width,bottom:e.y+e.height})}function Ct(e,t){return"viewport"===t?Vt(function(e){var t=ze(e),r=t.visualViewport,o=t.innerWidth,n=t.innerHeight;return r&&/iPhone|iPod|iPad/.test(navigator.platform)&&(o=r.width,n=r.height),{width:o,height:n,x:0,y:0}}(e)):Ge(t)?Ye(t):Vt(function(e){var t=ze(e),r=Ke(e),o=rt(Qe(e),t);return o.height=Math.max(o.height,t.innerHeight),o.width=Math.max(o.width,t.innerWidth),o.x=-r.scrollLeft,o.y=-r.scrollTop,o}(Qe(e)))}function It(e,t,r){var o="clippingParents"===t?function(e){var t=at(e),r=["absolute","fixed"].indexOf(et(e).position)>=0&&Ge(e)?ct(e):e;return Ue(r)?t.filter((function(e){return Ue(e)&&Ht(e,r)})):[]}(e):[].concat(t),n=[].concat(o,[r]),a=n[0],i=n.reduce((function(t,r){var o=Ct(e,r),n=Nt(Ge(r)?r:Qe(e));return t.top=Math.max(o.top+n.top,t.top),t.right=Math.min(o.right-n.right,t.right),t.bottom=Math.min(o.bottom-n.bottom,t.bottom),t.left=Math.max(o.left+n.left,t.left),t}),Ct(e,a));return i.width=i.right-i.left,i.height=i.bottom-i.top,i.x=i.left,i.y=i.top,i}function Rt(e){return Object.assign({},{top:0,right:0,bottom:0,left:0},{},e)}function _t(e,t){return t.reduce((function(t,r){return t[r]=e,t}),{})}function Ft(e,t){void 0===t&&(t={});var r=t,o=r.placement,n=void 0===o?e.placement:o,a=r.boundary,i=void 0===a?"clippingParents":a,s=r.rootBoundary,c=void 0===s?"viewport":s,l=r.elementContext,d=void 0===l?"popper":l,u=r.altBoundary,f=void 0!==u&&u,p=r.padding,m=void 0===p?0:p,h=Rt("number"!=typeof m?m:_t(m,pt)),v="popper"===d?"reference":"popper",b=e.elements.reference,g=e.rects.popper,y=e.elements[f?v:d],w=It(Ue(y)?y:y.contextElement||Qe(e.elements.popper),i,c),x=Ye(b),O=St({reference:x,element:g,strategy:"absolute",placement:n}),j=Vt(Object.assign({},g,{},O)),k="popper"===d?j:x,E={top:w.top-k.top+h.top,bottom:k.bottom-w.bottom+h.bottom,left:w.left-k.left+h.left,right:k.right-w.right+h.right},M=e.modifiersData.offset;if("popper"===d&&M){var $=M[n];Object.keys(E).forEach((function(e){var t=[ut,dt].indexOf(e)>=0?1:-1,r=[lt,dt].indexOf(e)>=0?"y":"x";E[e]+=$[r]*t}))}return E}function Xt(e,t){void 0===t&&(t={});var r=t,o=r.placement,n=r.boundary,a=r.rootBoundary,i=r.padding,s=r.flipVariations,c=r.allowedAutoPlacements,l=void 0===c?ht:c,d=$t(o),u=(d?s?mt:mt.filter((function(e){return $t(e)===d})):pt).filter((function(e){return l.indexOf(e)>=0})).reduce((function(t,r){return t[r]=Ft(e,{placement:r,boundary:n,rootBoundary:a,padding:i})[xt(r)],t}),{});return Object.keys(u).sort((function(e,t){return u[e]-u[t]}))}function Yt(e,t,r){return Math.max(e,Math.min(t,r))}function zt(e,t,r){return void 0===r&&(r={x:0,y:0}),{top:e.top-t.height-r.y,right:e.right-t.width+r.x,bottom:e.bottom-t.height+r.y,left:e.left-t.width-r.x}}function Kt(e){return[lt,ut,dt,ft].some((function(t){return e[t]>=0}))}var Ut=Et({defaultModifiers:[{name:"eventListeners",enabled:!0,phase:"write",fn:function(){},effect:function(e){var t=e.state,r=e.instance,o=e.options,n=o.scroll,a=void 0===n||n,i=o.resize,s=void 0===i||i,c=ze(t.elements.popper),l=[].concat(t.scrollParents.reference,t.scrollParents.popper);return a&&l.forEach((function(e){e.addEventListener("scroll",r.update,Mt)})),s&&c.addEventListener("resize",r.update,Mt),function(){a&&l.forEach((function(e){e.removeEventListener("scroll",r.update,Mt)})),s&&c.removeEventListener("resize",r.update,Mt)}},data:{}},{name:"popperOffsets",enabled:!0,phase:"read",fn:function(e){var t=e.state,r=e.name;t.modifiersData[r]=St({reference:t.rects.reference,element:t.rects.popper,strategy:"absolute",placement:t.placement})},data:{}},{name:"computeStyles",enabled:!0,phase:"beforeWrite",fn:function(e){var t=e.state,r=e.options,o=r.gpuAcceleration,n=void 0===o||o,a=r.adaptive,i=void 0===a||a;if("production"!==process.env.NODE_ENV){var s=et(t.elements.popper).transitionProperty||"";i&&["transform","top","right","bottom","left"].some((function(e){return s.indexOf(e)>=0}))&&console.warn(["Popper: Detected CSS transitions on at least one of the following",'CSS properties: "transform", "top", "right", "bottom", "left".',"\n\n",'Disable the "computeStyles" modifier\'s `adaptive` option to allow',"for smooth transitions, or remove these properties from the CSS","transition declaration on the popper element if only transitioning","opacity or background-color for example.","\n\n","We recommend using the popper element as a wrapper around an inner","element that can have any CSS property transitioned for animations."].join(" "))}var c={placement:xt(t.placement),popper:t.elements.popper,popperRect:t.rects.popper,gpuAcceleration:n};null!=t.modifiersData.popperOffsets&&(t.styles.popper=Object.assign({},t.styles.popper,{},Dt(Object.assign({},c,{offsets:t.modifiersData.popperOffsets,position:t.options.strategy,adaptive:i})))),null!=t.modifiersData.arrow&&(t.styles.arrow=Object.assign({},t.styles.arrow,{},Dt(Object.assign({},c,{offsets:t.modifiersData.arrow,position:"absolute",adaptive:!1})))),t.attributes.popper=Object.assign({},t.attributes.popper,{"data-popper-placement":t.placement})},data:{}},{name:"applyStyles",enabled:!0,phase:"write",fn:function(e){var t=e.state;Object.keys(t.elements).forEach((function(e){var r=t.styles[e]||{},o=t.attributes[e]||{},n=t.elements[e];Ge(n)&&Je(n)&&(Object.assign(n.style,r),Object.keys(o).forEach((function(e){var t=o[e];!1===t?n.removeAttribute(e):n.setAttribute(e,!0===t?"":t)})))}))},effect:function(e){var t=e.state,r={popper:{position:t.options.strategy,left:"0",top:"0",margin:"0"},arrow:{position:"absolute"},reference:{}};return Object.assign(t.elements.popper.style,r.popper),t.elements.arrow&&Object.assign(t.elements.arrow.style,r.arrow),function(){Object.keys(t.elements).forEach((function(e){var o=t.elements[e],n=t.attributes[e]||{},a=Object.keys(t.styles.hasOwnProperty(e)?t.styles[e]:r[e]).reduce((function(e,t){return e[t]="",e}),{});Ge(o)&&Je(o)&&(Object.assign(o.style,a),Object.keys(n).forEach((function(e){o.removeAttribute(e)})))}))}},requires:["computeStyles"]},{name:"offset",enabled:!0,phase:"main",requires:["popperOffsets"],fn:function(e){var t=e.state,r=e.options,o=e.name,n=r.offset,a=void 0===n?[0,0]:n,i=ht.reduce((function(e,r){return e[r]=function(e,t,r){var o=xt(e),n=[ft,lt].indexOf(o)>=0?-1:1,a="function"==typeof r?r(Object.assign({},t,{placement:e})):r,i=a[0],s=a[1];return i=i||0,s=(s||0)*n,[ft,ut].indexOf(o)>=0?{x:s,y:i}:{x:i,y:s}}(r,t.rects,a),e}),{}),s=i[t.placement],c=s.x,l=s.y;null!=t.modifiersData.popperOffsets&&(t.modifiersData.popperOffsets.x+=c,t.modifiersData.popperOffsets.y+=l),t.modifiersData[o]=i}},{name:"flip",enabled:!0,phase:"main",fn:function(e){var t=e.state,r=e.options,o=e.name;if(!t.modifiersData[o]._skip){for(var n=r.mainAxis,a=void 0===n||n,i=r.altAxis,s=void 0===i||i,c=r.fallbackPlacements,l=r.padding,d=r.boundary,u=r.rootBoundary,f=r.altBoundary,p=r.flipVariations,m=void 0===p||p,h=r.allowedAutoPlacements,v=t.options.placement,b=xt(v),g=c||(b===v||!m?[At(v)]:function(e){if("auto"===xt(e))return[];var t=At(e);return[qt(e),t,qt(t)]}(v)),y=[v].concat(g).reduce((function(e,r){return e.concat("auto"===xt(r)?Xt(t,{placement:r,boundary:d,rootBoundary:u,padding:l,flipVariations:m,allowedAutoPlacements:h}):r)}),[]),w=t.rects.reference,x=t.rects.popper,O=new Map,j=!0,k=y[0],E=0;E<y.length;E++){var M=y[E],$=xt(M),L="start"===$t(M),S=[lt,dt].indexOf($)>=0,T=S?"width":"height",D=Ft(t,{placement:M,boundary:d,rootBoundary:u,altBoundary:f,padding:l}),P=S?L?ut:ft:L?dt:lt;w[T]>x[T]&&(P=At(P));var A=At(P),W=[];if(a&&W.push(D[$]<=0),s&&W.push(D[P]<=0,D[A]<=0),W.every((function(e){return e}))){k=M,j=!1;break}O.set(M,W)}if(j)for(var q=function(e){var t=y.find((function(t){var r=O.get(t);if(r)return r.slice(0,e).every((function(e){return e}))}));if(t)return k=t,"break"},B=m?3:1;B>0;B--){if("break"===q(B))break}t.placement!==k&&(t.modifiersData[o]._skip=!0,t.placement=k,t.reset=!0)}},requiresIfExists:["offset"],data:{_skip:!1}},{name:"preventOverflow",enabled:!0,phase:"main",fn:function(e){var t=e.state,r=e.options,o=e.name,n=r.mainAxis,a=void 0===n||n,i=r.altAxis,s=void 0!==i&&i,c=r.boundary,l=r.rootBoundary,d=r.altBoundary,u=r.padding,f=r.tether,p=void 0===f||f,m=r.tetherOffset,h=void 0===m?0:m,v=Ft(t,{boundary:c,rootBoundary:l,padding:u,altBoundary:d}),b=xt(t.placement),g=$t(t.placement),y=!g,w=Lt(b),x="x"===w?"y":"x",O=t.modifiersData.popperOffsets,j=t.rects.reference,k=t.rects.popper,E="function"==typeof h?h(Object.assign({},t.rects,{placement:t.placement})):h,M={x:0,y:0};if(O){if(a){var $="y"===w?lt:ft,L="y"===w?dt:ut,S="y"===w?"height":"width",T=O[w],D=O[w]+v[$],P=O[w]-v[L],A=p?-k[S]/2:0,W="start"===g?j[S]:k[S],q="start"===g?-k[S]:-j[S],B=t.elements.arrow,N=p&&B?ot(B):{width:0,height:0},H=t.modifiersData["arrow#persistent"]?t.modifiersData["arrow#persistent"].padding:{top:0,right:0,bottom:0,left:0},V=H[$],C=H[L],I=Yt(0,j[S],N[S]),R=y?j[S]/2-A-I-V-E:W-I-V-E,_=y?-j[S]/2+A+I+C+E:q+I+C+E,F=t.elements.arrow&&ct(t.elements.arrow),X=F?"y"===w?F.clientTop||0:F.clientLeft||0:0,Y=t.modifiersData.offset?t.modifiersData.offset[t.placement][w]:0,z=O[w]+R-Y-X,K=O[w]+_-Y,U=Yt(p?Math.min(D,z):D,T,p?Math.max(P,K):P);O[w]=U,M[w]=U-T}if(s){var G="x"===w?lt:ft,J="x"===w?dt:ut,Q=O[x],Z=Yt(Q+v[G],Q,Q-v[J]);O[x]=Z,M[x]=Z-Q}t.modifiersData[o]=M}},requiresIfExists:["offset"]},{name:"arrow",enabled:!0,phase:"main",fn:function(e){var t,r=e.state,o=e.name,n=r.elements.arrow,a=r.modifiersData.popperOffsets,i=xt(r.placement),s=Lt(i),c=[ft,ut].indexOf(i)>=0?"height":"width";if(n&&a){var l=r.modifiersData[o+"#persistent"].padding,d=ot(n),u="y"===s?lt:ft,f="y"===s?dt:ut,p=r.rects.reference[c]+r.rects.reference[s]-a[s]-r.rects.popper[c],m=a[s]-r.rects.reference[s],h=ct(n),v=h?"y"===s?h.clientHeight||0:h.clientWidth||0:0,b=p/2-m/2,g=l[u],y=v-d[c]-l[f],w=v/2-d[c]/2+b,x=Yt(g,w,y),O=s;r.modifiersData[o]=((t={})[O]=x,t.centerOffset=x-w,t)}},effect:function(e){var t=e.state,r=e.options,o=e.name,n=r.element,a=void 0===n?"[data-popper-arrow]":n,i=r.padding,s=void 0===i?0:i;null!=a&&("string"!=typeof a||(a=t.elements.popper.querySelector(a)))&&("production"!==process.env.NODE_ENV&&(Ge(a)||console.error(['Popper: "arrow" element must be an HTMLElement (not an SVGElement).',"To use an SVG arrow, wrap it in an HTMLElement that will be used as","the arrow."].join(" "))),Ht(t.elements.popper,a)?(t.elements.arrow=a,t.modifiersData[o+"#persistent"]={padding:Rt("number"!=typeof s?s:_t(s,pt))}):"production"!==process.env.NODE_ENV&&console.error(['Popper: "arrow" modifier\'s `element` must be a child of the popper',"element."].join(" ")))},requires:["popperOffsets"],requiresIfExists:["preventOverflow"]},{name:"hide",enabled:!0,phase:"main",requiresIfExists:["preventOverflow"],fn:function(e){var t=e.state,r=e.name,o=t.rects.reference,n=t.rects.popper,a=t.modifiersData.preventOverflow,i=Ft(t,{elementContext:"reference"}),s=Ft(t,{altBoundary:!0}),c=zt(i,o),l=zt(s,n,a),d=Kt(c),u=Kt(l);t.modifiersData[r]={referenceClippingOffsets:c,popperEscapeOffsets:l,isReferenceHidden:d,hasPopperEscaped:u},t.attributes.popper=Object.assign({},t.attributes.popper,{"data-popper-reference-hidden":d,"data-popper-escaped":u})}}]});Object.assign(window,{createPopper:Ut});export{R as UeButton,xe as UeContentItem,_e as UeDrawer,Ae as UeDropdown,he as UeIcon,Xe as UeList,we as UeListItem,Ne as UeProgressBar,Ce as UeSelectGrp,fe as UeSlider,Le as UeTabGroup,N as UeText,qe as UeTooltip,W as shadowStyle};

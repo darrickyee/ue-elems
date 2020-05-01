@@ -1,39 +1,40 @@
 import { lit, html } from '../lib/lit';
-import { define } from 'hybrids';
-import { listen } from '../lib/util';
+import { define, parent } from 'hybrids';
+import { listen, reflect } from '../lib/util';
+import tippy from 'tippy.js';
 
-const inPath = (selector, path) => path.some(el => (el.matches ? el.matches(selector) : false));
+const TOOLTIPS = new WeakMap();
 
 function show(host, event) {
-    if (!host.active) {
-        host.pos = [event.clientX, event.clientY];
-        host.active = true;
+    if (host.target) {
+        TOOLTIPS.set(host.target, tippy(host.target, host));
     }
 }
 
 function hide(host, event) {
-    host.active = false;
+    if (host.target && TOOLTIPS.has(host.target)) {
+        TOOLTIPS.get(host.target).destroy();
+    }
 }
 
 const properties = {
-    pos: [0, 0],
-    delay: 1,
-    active: {
-        connect: (host, key, invalidate) => {
-            const parent = host.parentElement;
-            if (parent) {
-                const stopshow = listen(parent, 'mouseover', e => show(host, e));
-                const stophide = listen(parent, 'mouseout', e => hide(host, e));
-                return () => {
-                    stopshow();
-                    stophide();
-                };
-            }
-        }
-    }
+    for: reflect('for', ''),
+    target: {
+        get: host => (host.for ? document.querySelector(host.for) : host.parentElement),
+        connect: host => {
+            const pop = tippy(host.target as Element, {
+                content: host.firstChild,
+                allowHTML: true,
+                followCursor: 'initial',
+                interactive: true,
+                trigger: 'click'
+            });
+            return pop.destroy;
+        },
+    },
 };
 
-const template = host => html`
+const template = () => html`
     <style>
         div {
             height: auto;
@@ -43,13 +44,6 @@ const template = host => html`
             background-color: var(--ue-bg-color);
         }
     </style>
-    ${host.active
-        ? html`
-              <div style="left: ${host.pos[0]}px; top: ${host.pos[1]}px">
-                  <slot></slot>
-              </div>
-          `
-        : html``}
 `;
 
 export const UeTooltip = define('ue-tooltip', { ...properties, render: lit(template) });

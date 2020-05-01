@@ -1,136 +1,138 @@
-import { classMap, html, lit } from '../lib/lit';
+import { html, lit, classMap } from '../lib/lit';
+import { defaultStyles, styleProps } from './common';
 import { curry, reflect } from '../lib/util';
 import { define } from 'hybrids';
 
 /********** Utility functions **********/
 
 const handleEvent = curry((host, { type }) => {
-    switch (type) {
-        case 'focus':
-            host.focused = true;
-            break;
-        case 'blur':
-            host.focused = host.active = false;
-            break;
-        case 'mousedown':
-            host.active = true;
-            break;
-        case 'mouseup':
-            host.active = false;
-            host.checked = host.checkable ? !host.checked : false;
-
-            break;
-    }
+    // switch (type) {
+    //     case 'focus':
+    //         host.focused = true;
+    //         break;
+    //     case 'blur':
+    //         host.focused = host.active = false;
+    //         break;
+    //     case 'mousedown':
+    //         host.active = true;
+    //         break;
+    //     case 'mouseup':
+    //         host.active = false;
+    //         break;
+    // }
 });
 
-const styles = host => html`
+const styles = html`
     <style>
         :host {
-            display: flex;
+            display: inline-flex;
+            min-width: var(--ue-btn-width, var(--ue-default-btn-width));
+            height: var(--ue-btn-height, var(--ue-default-btn-height));
+            --ue-focus-color: var(--ue-color-primary-text);
+            --ue-focus-background: var(--ue-color-primary);
+        }
 
-            padding: 2px;
-            align-items: stretch;
-            outline: none;
-            width: var(--ue-btn-width);
-            height: var(--ue-btn-height);
-            pointer-events: ${host.disabled ? 'none' : ''};
+        :host([invert]) {
+            --ue-focus-color: var(--ue-color-primary);
+            --ue-focus-background: var(--ue-color-primary-text);
+        }
+
+        button:focus {
+            /* color: var(--ue-focus-color, var(--ue-default-focus-color));
+            background-color: var(
+                --ue-focus-background-color,
+                var(--ue-default-focus-background-color)
+            );
+            border-color: var(--ue-focus-border-color, var(--ue-default-focus-border-color));
+            border-style: var(--ue-focus-border-style, var(--ue-default-focus-border-style));*/
+            color: var(--ue-focus-color);
+            background: var(--ue-focus-background);
+        }
+
+        button:active,
+        .checked {
+            color: var(--ue-active-color, var(--ue-default-active-color));
+            background-color: var(
+                --ue-active-background-color,
+                var(--ue-default-active-background-color)
+            );
+            border-color: var(--ue-active-border-color, var(--ue-default-active-border-color));
+            border-style: var(--ue-active-border-style, var(--ue-default-active-border-style));
+        }
+
+        button:disabled {
+            pointer-events: none;
+            color: #888;
+            background-color: #444;
+            border: var(--ue-border-width) solid #888;
         }
 
         ::slotted(*) {
             user-select: none;
-            max-height: -webkit-fill-available;
-            max-width: -webkit-fill-available;
         }
 
-        div {
-            /* Fixed values */
-            display: flex;
-            flex-direction: column;
-            padding: 5px;
-            flex-grow: 1;
-            flex-shrink: inherit;
-
-            align-items: center;
+        button {
+            display: inline-flex;
             justify-content: center;
-            outline: none;
+            font: inherit;
 
-            color: var(--ue-color);
-            background-color: var(--ue-bg-color);
-            border: var(--ue-border);
-            border-radius: var(--ue-border-radius);
+            width: 100%;
+            height: 100%;
 
-            transition: var(--ue-transition);
-        }
+            color: var(--ue-color, var(--ue-default-color));
+            background-color: var(--ue-background-color, var(--ue-default-background-color));
+            border-color: var(--ue-border-color, var(--ue-default-border-color));
+            border-width: var(--ue-border-width, var(--ue-default-border-width));
+            border-style: var(--ue-border-style, var(--ue-default-border-style));
+            border-radius: var(--ue-border-radius, var(--ue-default-border-radius));
 
-        .focused {
-            --ue-color: var(--ue-focus-color);
-            --ue-bg-color: var(--ue-focus-bg-color);
-            --ue-border: var(--ue-focus-border);
-
-            transition: var(--ue-transition);
-        }
-
-        .active {
-            --ue-color: var(--ue-active-color);
-            --ue-bg-color: var(--ue-active-bg-color);
-            --ue-border: var(--ue-active-border);
-
-            transition: var(--ue-transition);
-        }
-
-        .disabled {
-            --ue-color: #888;
-            --ue-bg-color: #444;
-            --ue-border: #888;
-            pointer-events: none;
-        }
-
-        .checked {
-            --ue-color: var(--ue-active-color);
-            --ue-bg-color: var(--ue-active-bg-color);
-            --ue-border: var(--ue-active-border);
+            transition: var(--ue-transition, var(--ue-default-transition));
         }
     </style>
 `;
 
 const properties = {
     active: reflect('active', false),
-    checkable: false,
     checked: reflect('checked', false),
     disabled: reflect('disabled', false),
-    focused: reflect('focused', false)
+    focused: reflect('focused', false),
+    ...styleProps,
 };
-
-function focusMe() {
-    if (this && this.focus) this.focus();
-}
-
-function blurMe() {
-    if (this && this.blur) this.blur();
-}
 
 // Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
 
 const template = host => {
     const { active, checked, disabled, focused } = host;
     return html`
-        ${styles(host)}
-        <div
+        ${defaultStyles} ${styles}
+        <style>
+            ::slotted(*) {
+                user-select: none;
+            }
+        </style>
+        <button
             tabindex="0"
-            class=${classMap({ active, checked, disabled, focused })}
-            @mouseover=${focusMe}
-            @mouseleave=${blurMe}
-            @mousedown=${handleEvent(host)}
-            @mouseup=${handleEvent(host)}
+            class=${classMap({ active, checked, focused })}
+            .disabled=${disabled}
+            @mouseover=${e => {
+                host.focused = true;
+                e.target.focus();
+            }}
+            @mouseleave=${e => {
+                host.focused = false;
+                e.target.blur();
+            }}
             @focus=${handleEvent(host)}
             @blur=${handleEvent(host)}
+            @mousedown=${handleEvent(host)}
+            @mouseup=${handleEvent(host)}
         >
             <slot></slot>
-        </div>
+        </button>
     `;
 };
 
 export const UeButton = define('ue-button', {
     ...properties,
-    render: lit(template)
+    render: lit(template),
 });

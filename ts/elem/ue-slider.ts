@@ -1,15 +1,7 @@
 import { dispatch, define } from 'hybrids';
-import {
-    clamp,
-    findElement,
-    roundTo,
-    select,
-    repeatUntil,
-    pipe,
-    remap,
-    curry
-} from '../lib/util/index';
+import { clamp, findElement, roundTo, pipe, remap, curry, reflect } from '../lib/util/index';
 import { html, lit, once } from '../lib/lit';
+import { defaultStyles } from './common';
 import shft from 'shftjs';
 const { drag } = shft;
 
@@ -28,17 +20,16 @@ const styles = html`
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 1em;
+            height: 3em;
             cursor: default;
-            padding: 0.5em;
         }
 
         .slider-bar {
             cursor: default;
             position: relative;
             width: 100%;
-            height: 50%;
-            background-color: var(--ue-bg-color);
+            height: 0.5em;
+            background: var(--ue-default-c-primary);
             touch-action: none;
             display: flex;
             align-items: center;
@@ -46,69 +37,62 @@ const styles = html`
 
         .handle {
             cursor: default;
-            width: 0.8em;
-            height: 300%;
-            transform: translate(-50%, 0);
-            background-color: var(--ue-color);
-            border: var(--ue-border);
-            border-radius: var(--ue-border-radius);
-            position: relative;
+            width: 2.5em;
+            height: 2.5em;
+            /* background: var(--ue-default-c-primary); */
+            background-color: rgba(255, 0, 0, 0.3);
+            clip-path: circle(1em);
+            position: absolute;
+            left: 0;
         }
     </style>
 `;
 
 const properties = {
-    min: 0,
-    max: 100,
-    step: 1,
+    min: reflect('min', 0),
+    max: reflect('max', 100),
+    step: reflect('step', 1),
     value: {
-        get: (host, lastValue) => lastValue || 0,
-        set: ({ step }, value) => roundTo(step, value),
-        observe: (host, value, lastValue) => {
-            const { min, max, step } = host;
-            dispatch(host, 'change', {
-                bubbles: true,
-                composed: true,
-                detail: { value, min, max, step }
-            });
-        }
-    }
+        ...reflect('value', 0),
+        observe: (host, value) => {
+            dispatch(host, 'changed', { bubbles: true, composed: true, detail: { value } });
+        },
+    },
 };
 
-const template = host => {
-    const { min, max, value } = host;
+const _dragHandle = (host, { clientX }) => {
+    const offsetX = clientX - host.getBoundingClientRect().left;
+    const { min, max, step, clientWidth } = host;
+    host.value = clamp(min, max, roundTo(step, remap(0, clientWidth, min, max, offsetX)));
+};
+
+const template = (host) => {
+    const { min, max, value, clientWidth } = host;
 
     return html`
-        ${styles}
+        ${defaultStyles} ${styles}
         <div
             class="slider-bar"
-            @mousedown=${({ path, offsetX }) => {
-                if (path[0] === select('.slider-bar', host.shadowRoot)) {
-                    host.value += increment(host, offsetX);
-                    repeatUntil(() => {
-                        host.value += increment(host, offsetX);
-                    }, 'mouseup');
-                }
-            }}
+            @drag=${(e) => _dragHandle(host, e)}
+            @mousedown=${(e) => _dragHandle(host, e)}
         >
             <div
                 tabindex="0"
                 class="handle"
-                style="left: ${pipe(remap(min, max)(0, 100), clamp(0, 100))(value)}%"
-                @drag=${({ offsetX, target: { offsetLeft } }) => {
-                    host.value = posToVal(host)(offsetX + offsetLeft);
-                }}
+                style="transform: translateX(${clamp(
+                    0,
+                    clientWidth,
+                    remap(min, max, 0, clientWidth, value)
+                )}px) translateX(-50%);"
             ></div>
         </div>
         ${once(() => {
-            findElement('.handle', host.shadowRoot)
-                .then(drag)
-                .catch(console.log);
+            findElement('.slider-bar', host.shadowRoot).then(drag).catch(console.log);
         })}
     `;
 };
 
 export const UeSlider = define('ue-slider', {
     ...properties,
-    render: lit(template)
+    render: lit(template),
 });

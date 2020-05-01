@@ -5,7 +5,7 @@ import { listen } from '../lib/util';
 
 const properties = {
     ...SingleSelectGroup,
-    expand: {
+    open: {
         connect: (host, key) => {
             host[key] = false;
         },
@@ -15,7 +15,7 @@ const properties = {
                     document,
                     'click',
                     () => {
-                        host.expand = false;
+                        host.open = false;
                     },
                     { once: true }
                 );
@@ -61,21 +61,21 @@ const openStyle = {
 };
 
 const template = host => {
-    const { expand, items, selectedItem } = host;
+    const { open, selectedItem } = host;
     return html`
         ${styles}
-        <div class="container" style=${styleMap(expand ? openStyle : closeStyle)}>
+        <div class="container" style=${styleMap(open ? openStyle : closeStyle)}>
             <ue-button
-                .checked=${expand}
+                .checked=${open}
                 @click=${() => {
-                    host.expand = !expand;
+                    host.open = !open;
                 }}
                 >${selectedItem ? selectedItem.label : ''}<ue-icon></ue-icon
             ></ue-button>
         </div>
         <div class="container">
-            <ue-drawer .expand=${expand} direction="down">
-                <div style=${styleMap(expand ? openStyle : closeStyle)}>
+            <ue-drawer .open=${open} direction="down">
+                <div style=${styleMap(open ? openStyle : closeStyle)}>
                     ${buttonList(host)}
                 </div>
             </ue-drawer>

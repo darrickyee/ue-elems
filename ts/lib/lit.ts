@@ -1,4 +1,4 @@
-import { directive, Part, render, TemplateResult } from 'lit-html';
+import { directive, Part, render, TemplateResult, RenderOptions } from 'lit-html';
 export { html, svg } from 'lit-html';
 export { classMap } from 'lit-html/directives/class-map';
 export { guard } from 'lit-html/directives/guard';
@@ -18,10 +18,10 @@ const once = directive((fn: () => unknown) => (part: any): void => {
     hasRun.add(part);
 });
 
-const lit = (fn: (host: any) => TemplateResult) => {
+const lit = (fn: (host: any) => TemplateResult, options: Partial<RenderOptions> = {}) => {
     return host => {
         const template = fn(host);
-        return (host, target) => render(template, target);
+        return (_, target) => render(template, target, options);
     };
 };
 

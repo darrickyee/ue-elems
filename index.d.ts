@@ -1,5 +1,6 @@
 import { HybridElement } from 'hybrids';
 
+declare const shadowStyle: (host: any) => string;
 declare const UeText: HybridElement<any>;
 
 declare const UeButton: HybridElement<any>;
@@ -23,4 +24,6 @@ declare const UeSelectGrp: HybridElement<any>;
 
 declare const UeDrawer: HybridElement<any>;
 
-export { UeButton, UeContentItem, UeDrawer, UeDropdown, UeIcon, UeListItem, UeProgressBar, UeSelectGrp, UeSlider, UeTabGroup, UeText, UeTooltip };
+declare const UeList: HybridElement<any>;
+
+export { UeButton, UeContentItem, UeDrawer, UeDropdown, UeIcon, UeList, UeListItem, UeProgressBar, UeSelectGrp, UeSlider, UeTabGroup, UeText, UeTooltip, shadowStyle };

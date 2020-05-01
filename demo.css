@@ -1,24 +1,62 @@
 :root {
-    --ue-color: #666;
+    --ue-color: #fff;
     --ue-bg-color: #ccc;
-    --ue-border: 1px solid #888;
+    --ue-border-color: #888;
+    --ue-border-width: 1px;
+    --ue-border-radius: 4px;
 
     --ue-focus-color: #666;
     --ue-focus-bg-color: #acf;
-    --ue-focus-border: 1px solid #8af;
+    --ue-focus-border-color: #8af;
 
     --ue-active-color: white;
     --ue-active-bg-color: #8af;
-    --ue-active-border: 1px solid #46a;
-
-    --ue-border-radius: 4px;
-
-    --ue-transition: background-color 0.5s, color 0.5s, transform 0.5s, border 0.5s;
+    --ue-active-border-color: #46a;
 
     --ue-btn-width: 10em;
     --ue-btn-height: 2em;
 
+    --ue-border: var(--ue-border-width, 1px) solid var(--ue-border-color, #888);
+    --ue-focus-border: var(--ue-border-width, 1px) solid var(--ue-focus-border-color, #8af);
+    --ue-active-border: var(--ue-border-width, 1px) solid var(--ue-active-border-color, #46a);
     --ue-border-blur: 1px;
+
+    color: var(--ue-color, black);
+    text-shadow: -1px -1px 1px #000, 0 -1px 1px #000, 1px -1px 1px #000, 1px 0 1px #000,
+        1px 1px 1px #000, 0 1px 1px #000, -1px 1px 1px #000, -1px 0 1px #000;
+
+    --ue-transition: background-color 0.25s, color 0.25s, transform 0.25s, border 0.25s;
+}
+
+.active1 {
+    --ue-color: red;
+}
+
+strong {
+    font-weight: bolder;
+}
+
+ue-button {
+    --ue-color: #666;
+    --ue-bg-color: #ccc;
+    --ue-border-color: #888;
+    --ue-border-width: 1px;
+    --ue-border-radius: 4px;
+
+    --ue-focus-color: #666;
+    --ue-focus-bg-color: #acf;
+    --ue-focus-border-color: #8af;
+
+    --ue-active-color: white;
+    --ue-active-bg-color: #8af;
+    --ue-active-border-color: #46a;
+
+    --ue-btn-width: 10em;
+    --ue-btn-height: 2em;
+
+    --ue-border: var(--ue-border-width, 1px) solid var(--ue-border-color, #888);
+    --ue-focus-border: var(--ue-border-width, 1px) solid var(--ue-focus-border-color, #8af);
+    --ue-active-border: var(--ue-border-width, 1px) solid var(--ue-active-border-color, #46a);
 }
 
 body {

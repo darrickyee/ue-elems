@@ -3,7 +3,7 @@ import { reflect } from '../lib/util';
 import { define } from 'hybrids';
 
 const properties = {
-    expand: false,
+    open: false,
     direction: reflect('direction', 'right'),
     duration: reflect('duration', 0.2)
 };
@@ -41,17 +41,17 @@ const styles = html`
             align-items: center;
         }
 
-        .expand {
+        .open {
             transform: translate(0, 0);
         }
     </style>
 `;
 
-const template = ({ direction, duration, expand }) =>
+const template = ({ direction, duration, open }) =>
     html`
         ${styles}
         <div
-            class=${classMap({ expand, [direction]: true })}
+            class=${classMap({ open, [direction]: true })}
             style="transition: transform ${duration}s;"
         >
             <slot></slot>

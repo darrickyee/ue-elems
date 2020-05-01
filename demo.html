@@ -4,6 +4,10 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>DEMO</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+            rel="stylesheet"
+        />
         <!-- <link rel="stylesheet" href="./css/fonts.css" type="text/css" /> -->
         <link
             href="https://fonts.googleapis.com/css2?family=Alegreya+SC:ital,wght@0,400;0,700;1,400;1,700&family=Alegreya+Sans+SC:wght@300;400;700&family=Alegreya+Sans:wght@300;400;700&family=Alegreya:ital,wght@0,400;0,700;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inter:wght@300&family=Open+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Spectral+SC:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Spectral:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
@@ -45,20 +49,41 @@
             href="https://fonts.googleapis.com/css2?family=Overlock+SC&display=swap"
             rel="stylesheet"
         />
-        <link rel="stylesheet" href="./demo.css" type="text/css" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap"
+            rel="stylesheet"
+        />
+        <!-- <link rel="stylesheet" href="./demo.css" type="text/css" /> -->
     </head>
     <body>
+        <button>butt</button>
         <style>
             :root {
-                font-family: 'Source Sans Pro', sans-serif;
-                font-weight: normal;
-                font-size: 32px;
+                --ue-default-c-dark: #363538;
+                --ue-default-c-light: #f6f6f6;
+                --ue-default-c-primary: #52d6f4;
+                --ue-default-c-secondary: #408697;
+                --ue-default-c-contrast: #8d8c8a;
+            }
+            .reverse {
+                --ue-color: var(--ue-default-c-light);
+                --ue-background-color: var(--ue-default-c-dark);
+                --ue-border-color: var(--ue-default-c-dark);
+
+                --ue-focus-color: var(--ue-default-c-light);
+                --ue-focus-background-color: var(--ue-default-c-secondary);
+                --ue-focus-border-color: var(--ue-default-c-secondary);
+                --ue-focus-border-style: solid;
+                --ue-active-color: var(--ue-default-c-light);
+                --ue-active-background-color: var(--ue-default-c-primary);
+                --ue-active-border-color: var(--ue-default-c-primary);
+                --ue-active-border-style: solid;
             }
         </style>
         <ue-tab-group
-            preselect="1"
+            preselect="4"
             location="left"
-            class="btn-style-flat"
+            class="btn-style-flat reverse"
             style="--ue-btn-width: 6em; font-size: 0.8em;"
         >
             <ue-content-item label="Toggle">
@@ -73,7 +98,7 @@
             <ue-content-item label="Dropdown"
                 ><div style="display: flex;">
                     <ue-dropdown id="dd-family" preselect="0">
-                        <ue-list-item>Alegreya</ue-list-item>
+                        <ue-list-item id="first">Alegreya</ue-list-item>
                         <ue-list-item>Alegreya SC</ue-list-item>
                         <ue-list-item>Alegreya Sans</ue-list-item>
                         <ue-list-item>Alegreya Sans SC</ue-list-item>
@@ -81,7 +106,7 @@
                         <ue-list-item>Overlock SC</ue-list-item>
                         <ue-list-item>Spectral</ue-list-item>
                         <ue-list-item>Spectral SC</ue-list-item>
-                        <ue-list-item>Coming Soon</ue-list-item>
+                        <ue-list-item>Lora</ue-list-item>
 
                         <ue-list-item>Architects Daughter</ue-list-item>
                     </ue-dropdown>
@@ -119,18 +144,44 @@
             >
 
             <ue-content-item label="Button"
-                ><ue-button class="btn-style-1" id="demo-btn">Click me</ue-button
-                ><ue-text id="btn-val" style="font-size: 0.8em;"></ue-text
+                ><ue-button id="demo-btn"
+                    ><img
+                        src="https://s.abcnews.com/images/Lifestyle/puppy-ht-3-er-170907_16x9_992.jpg"/></ue-button
+                ><ue-text id="btn-val"></ue-text
             ></ue-content-item>
             <ue-content-item label="Slider"
                 ><ue-slider></ue-slider><ue-text id="slider-val" style="font-size: 0.8em;"></ue-text
             ></ue-content-item>
             <ue-content-item label="Progress"
-                ><ue-progress-bar></ue-progress-bar
-                ><ue-button style="font-size: 0.8em;" id="rand-btn">Random</ue-button
-                ><ue-text id="progress-val" style="font-size: 0.8em;"></ue-text
+                ><ue-progress-bar></ue-progress-bar><ue-button id="rand-btn">Random</ue-button
+                ><ue-text id="progress-val"></ue-text
             ></ue-content-item>
         </ue-tab-group>
+        <div id="test-tabs" style="position: relative; display: flex;">
+            <div
+                style="background-color: rgba(0, 0, 0, 0.5); margin-right: -1px; border-width: 1px; border-color: black; border-style: solid; height: 2em; margin-top: 2em;"
+            >
+                Hallo
+            </div>
+            <div
+                style="background-color: rgba(0, 0, 0, 0.5); border: 1px solid black; height: 10em;"
+            >
+                Hallo
+            </div>
+        </div>
+        <style>
+            .test-btn {
+                outline: none;
+                border: 1px solid #444;
+                border-radius: 0.25em;
+                box-shadow: 1px 1px 3px #444;
+            }
+            .test-btn:focus {
+                background-color: red;
+            }
+        </style>
+
+        <ue-button>Hallooo</ue-button>
 
         <script>
             const btn = document.querySelector('#demo-btn');

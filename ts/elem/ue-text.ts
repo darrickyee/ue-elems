@@ -44,3 +44,5 @@ export const UeText = define('ue-text', {
     ...properties,
     render: lit(template)
 });
+
+export { shadowStyle };
