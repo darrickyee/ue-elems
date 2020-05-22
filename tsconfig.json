@@ -10,7 +10,6 @@
         "experimentalDecorators": true,
         "outDir": "./src",
         "allowJs": false,
-        "typeRoots": ["./ts/typings"],
         "declaration": true
     },
     "include": ["./ts/**/*"],

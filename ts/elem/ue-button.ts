@@ -22,6 +22,10 @@ const handleEvent = curry((host, { type }) => {
     // }
 });
 
+const styleDefault = {
+    color: 'white',
+};
+
 const styles = html`
     <style>
         :host {
@@ -32,12 +36,16 @@ const styles = html`
             --ue-focus-background: var(--ue-color-primary);
         }
 
+        :host([rounded]) {
+            --ue-border-radius: '0.25em';
+        }
+
         :host([invert]) {
             --ue-focus-color: var(--ue-color-primary);
             --ue-focus-background: var(--ue-color-primary-text);
         }
 
-        button:focus {
+        button:hover {
             /* color: var(--ue-focus-color, var(--ue-default-focus-color));
             background-color: var(
                 --ue-focus-background-color,
@@ -99,29 +107,15 @@ const properties = {
     ...styleProps,
 };
 
-// Object.keys(properties).forEach(k => (properties[k] = reflectBool(k, properties[k])));
-
 const template = host => {
     const { active, checked, disabled, focused } = host;
     return html`
         ${defaultStyles} ${styles}
-        <style>
-            ::slotted(*) {
-                user-select: none;
-            }
-        </style>
+
         <button
             tabindex="0"
             class=${classMap({ active, checked, focused })}
             .disabled=${disabled}
-            @mouseover=${e => {
-                host.focused = true;
-                e.target.focus();
-            }}
-            @mouseleave=${e => {
-                host.focused = false;
-                e.target.blur();
-            }}
             @focus=${handleEvent(host)}
             @blur=${handleEvent(host)}
             @mousedown=${handleEvent(host)}

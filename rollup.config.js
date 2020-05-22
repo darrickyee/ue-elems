@@ -6,26 +6,22 @@ export default [
     {
         input: './src/core.js',
         output: { file: 'index.js', format: 'module' },
-        plugins: [resolve(), terser()],
-        external: ['lit-html', 'hybrids', 'tippy.js'],
+        plugins: [resolve(), dts(), terser()],
+        external: ['lit-html', 'hybrids'],
     },
     {
         input: './src/core.js',
         output: {
-            file: 'demo.js',
+            file: 'ue-elems.js',
             format: 'iife',
             name: 'UE_ELEMS',
-            globals: {
-                'tippy.js': 'tippy',
-            },
         },
-        plugins: [resolve()],
-        external: ['tippy.js'],
+        plugins: [resolve(), terser()],
     },
     {
         input: './src/core.d.ts',
-        output: { file: 'index.d.ts', format: 'module' },
-        plugins: [dts()],
+        output: [{ file: 'index.d.ts', format: 'module' }],
+        plugins: [resolve(), dts()],
         external: ['lit-html', 'hybrids'],
     },
 ];

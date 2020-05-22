@@ -1,6 +1,6 @@
 import { lit, html } from '../lib/lit';
-import { reflect } from '../lib/util';
-import { children, define } from 'hybrids';
+import { curry, reflect } from '../lib/util';
+import { children, define, dispatch, Descriptor, property } from 'hybrids';
 
 const Item = {
     _ue_item: true,
@@ -11,6 +11,7 @@ const Item = {
 const ListItem = {
     ...Item,
     value: reflect('value', ''),
+    label: host => host.getAttribute('label') || host.innerText,
     render: lit(() => html`<slot></slot>`),
 };
 
@@ -23,13 +24,27 @@ const ContentItem = {
 
 const ItemGroup = {
     items: children(el => el['_ue_item'] !== undefined),
-    selected: ({ items }) => items.filter(item => item.selected),
-    active: ({ items }) => items.filter(item => item.active),
-    selectedIdx: ({ items }) =>
-        items.filter(item => item.selected).map(item => items.indexOf(item)),
-    activeIdx: ({ items }) => items.filter(item => item.active).map(item => items.indexOf(item)),
 };
+
+const singleSelectProp: Descriptor<
+    HTMLElement & { items: (HTMLElement & { selected: boolean })[] }
+> = {
+    get: ({ items }) => items.findIndex(item => item.selected),
+    observe: (host, value) => {
+        dispatch(host, 'selected', {
+            bubbles: true,
+            composed: true,
+            detail: { index: value, item: host.items[value] || null },
+        });
+    },
+};
+
+const selectSingle = curry((itemArray, item) => {
+    itemArray.forEach(i => {
+        i.selected = i === item;
+    });
+});
 
 export const UeListItem = define('ue-list-item', ListItem);
 export const UeContentItem = define('ue-content-item', ContentItem);
-export { Item, ItemGroup };
+export { Item, ItemGroup, selectSingle, singleSelectProp };

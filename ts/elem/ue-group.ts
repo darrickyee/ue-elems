@@ -24,28 +24,25 @@ const singleSelect = {
                 detail: {
                     index: selected,
                     label: items[selected].label,
-                    item: items[selected]
-                }
+                    item: items[selected],
+                },
             });
-    }
+    },
 };
 
 const BaseGroup = {
-    items: children(el => el['ueItem'])
+    items: children(el => el['ueItem']),
 };
 
 export const SingleSelectGroup = {
     ...BaseGroup,
     preselect: reflect('preselect', 0),
     selected: singleSelect,
-    selectedItem: ({ items }) => items.find(item => item.selected)
+    selectedItem: ({ items }) => items.find(item => item.selected),
 };
 
 export const itemList = curry(
-    (itemTemplate, host) =>
-        html`
-            ${host.items.map(itemTemplate(host))}
-        `
+    (itemTemplate, host) => html` ${host.items.map(itemTemplate(host))} `
 );
 
 export const buttonItemTemplate = host => ({ selected, innerText }, index) => html`

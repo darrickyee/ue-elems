@@ -15,22 +15,25 @@
                 --ue-color-primary: aquamarine;
                 --ue-color-primary-text: red;
             }
+
+            .message {
+                position: absolute;
+                transition: transform 1s;
+            }
         </style>
-        <ue-button>
-            Click me because I have a lot of text
-            <!-- <img src="https://s.abcnews.com/images/Lifestyle/puppy-ht-3-er-170907_16x9_992.jpg" /> -->
-        </ue-button>
-        <ue-progress-bar value="25"><ue-tooltip>Bleh</ue-tooltip></ue-progress-bar>
-        <ue-list>
-            <ue-list-item><ue-button>Click me?</ue-button></ue-list-item>
+
+        <ue-progress-bar value="25"></ue-progress-bar>
+        <ue-tab-list>
+            <ue-list-item label="wll fuck it">Something</ue-list-item>
             <ue-list-item selected>Two</ue-list-item>
             <ue-list-item>Three</ue-list-item>
-        </ue-list>
-
+        </ue-tab-list>
+        <ue-drawer>Heloooo there</ue-drawer>
         <ue-slider style="position: relative; width: 50vw; left: 25vw;"> </ue-slider>
-        <input type="number" />
-        <script src="https://unpkg.com/@popperjs/core@2"></script>
-        <script src="https://unpkg.com/tippy.js@6"></script>
-        <script src="./demo.js"></script>
+
+        <ue-msg style="width: 25vw;"
+            ><ue-msg-item>Item 1</ue-msg-item> <ue-msg-item>Item 2</ue-msg-item></ue-msg
+        >
+        <script src="./ue-elems.js"></script>
     </body>
 </html>

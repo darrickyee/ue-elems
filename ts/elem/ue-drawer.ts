@@ -1,59 +1,53 @@
-import { classMap, html, lit } from '../lib/lit';
+import { classMap, html, lit, styleMap } from '../lib/lit';
 import { reflect } from '../lib/util';
 import { define } from 'hybrids';
 
 const properties = {
-    open: false,
+    open: reflect('open', false),
     direction: reflect('direction', 'right'),
-    duration: reflect('duration', 0.2)
+    duration: reflect('duration', 500),
 };
 
 const styles = html`
     <style>
         :host {
-            display: block;
+            display: inline-flex;
             overflow: hidden;
             position: absolute;
-        }
-
-        .left {
-            transform: translate(110%, 0);
-            flex-direction: row-reverse;
-        }
-
-        .right {
-            transform: translate(-110%, 0);
-            flex-direction: row;
-        }
-
-        .down {
-            transform: translate(0, -110%);
-            flex-direction: column;
-        }
-
-        .right {
-            transform: translate(0, 110%);
-            flex-direction: column-reverse;
+            background-color: transparent;
         }
 
         div {
             display: flex;
             align-items: center;
         }
-
-        .open {
-            transform: translate(0, 0);
-        }
     </style>
 `;
+
+const flexdirs = {
+    left: 'row-reverse',
+    right: 'row',
+    down: 'column',
+    up: 'column-reverse',
+};
+
+const transforms = {
+    left: 'translate(110%, 0)',
+    right: 'translate(-110%, 0)',
+    down: 'translate(0, -110%)',
+    up: 'translate(0, 110%)',
+};
+
+const getStyle = ({ direction, duration, open }) => ({
+    transition: `transform ${duration}ms`,
+    flexDirection: flexdirs[direction],
+    transform: open ? 'translate(0, 0)' : transforms[direction],
+});
 
 const template = ({ direction, duration, open }) =>
     html`
         ${styles}
-        <div
-            class=${classMap({ open, [direction]: true })}
-            style="transition: transform ${duration}s;"
-        >
+        <div style=${styleMap(getStyle({ direction, duration, open }))}>
             <slot></slot>
         </div>
     `;
