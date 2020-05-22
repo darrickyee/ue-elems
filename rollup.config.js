@@ -6,7 +6,7 @@ export default [
     {
         input: './src/core.js',
         output: { file: 'index.js', format: 'module' },
-        plugins: [resolve(), dts(), terser()],
+        plugins: [resolve(), dts()],
         external: ['lit-html', 'hybrids'],
     },
     {
