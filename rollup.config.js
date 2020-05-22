@@ -6,7 +6,7 @@ export default [
     {
         input: './src/core.js',
         output: { file: 'index.js', format: 'module' },
-        plugins: [resolve(), dts()],
+        plugins: [resolve()],
         external: ['lit-html', 'hybrids'],
     },
     {
@@ -21,7 +21,7 @@ export default [
     {
         input: './src/core.d.ts',
         output: [{ file: 'index.d.ts', format: 'module' }],
-        plugins: [resolve(), dts()],
+        plugins: [dts()],
         external: ['lit-html', 'hybrids'],
     },
 ];
