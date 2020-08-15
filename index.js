@@ -420,32 +420,6 @@ const listen = (target, type, listener, options) => {
     target.addEventListener(type, listener, options);
     return () => target.removeEventListener(type, listener, options);
 };
-/**
- * Returns a promise that resolves if `<context>.querySelector.(<selector>)` is found before `timeout` milliseconds and rejects otherwise.
- *
- * @param selector Selector string.
- * @param context Context for `selector`.  Defaults to `document`.
- * @param expire Expiration time (milliseconds).  Defaults to 1000.
- */
-const findElement = (selector, context = document, timeout = 1000) => {
-    return new Promise((resolve, reject) => {
-        let expired;
-        const t = setTimeout(() => {
-            expired = true;
-        }, timeout);
-        function _find() {
-            if (expired)
-                return reject();
-            let el = context.querySelector(selector);
-            if (el) {
-                clearTimeout(t);
-                return resolve(el);
-            }
-            requestAnimationFrame(_find);
-        }
-        _find();
-    });
-};
 
 const lerp = curry((start, end, t) => (end - start) * t + start);
 const invlerp = curry((start, end, x) => (x - start) / (end - start));
@@ -1010,20 +984,30 @@ const properties$2 = {
     value: Object.assign(Object.assign({}, reflect('value', 0)), { observe: (host, value) => {
             dispatch$1(host, 'changed', { bubbles: true, composed: true, detail: { value } });
         } }),
+    bar: {
+        get: ({ render }) => {
+            const target = render();
+            return target.querySelector('.slider-bar');
+        },
+        observe: (_, value, lastValue) => {
+            if (value && value !== lastValue)
+                drag$1(value);
+        },
+    },
 };
 const _dragHandle = (host, { clientX }) => {
     const offsetX = clientX - host.getBoundingClientRect().left;
     const { min, max, step, clientWidth } = host;
     host.value = clamp(min, max, roundTo(step, remap(0, clientWidth, min, max, offsetX)));
 };
-const template$2 = (host) => {
+const template$2 = host => {
     const { min, max, value, clientWidth } = host;
     return html `
         ${defaultStyles} ${styles$2}
         <div
             class="slider-bar"
-            @drag=${(e) => _dragHandle(host, e)}
-            @mousedown=${(e) => _dragHandle(host, e)}
+            @drag=${e => _dragHandle(host, e)}
+            @mousedown=${e => _dragHandle(host, e)}
         >
             <div
                 tabindex="0"
@@ -1031,9 +1015,6 @@ const template$2 = (host) => {
                 style="transform: translateX(${clamp(0, clientWidth, remap(min, max, 0, clientWidth, value))}px) translateX(-50%);"
             ></div>
         </div>
-        ${once(() => {
-        findElement('.slider-bar', host.shadowRoot).then(drag$1).catch(console.log);
-    })}
     `;
 };
 const UeSlider = define('ue-slider', Object.assign(Object.assign({}, properties$2), { render: lit(template$2) }));

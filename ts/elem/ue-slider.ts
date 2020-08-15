@@ -1,6 +1,6 @@
 import { dispatch, define } from 'hybrids';
-import { clamp, findElement, roundTo, pipe, remap, curry, reflect } from '../lib/util/index';
-import { html, lit, once } from '../lib/lit';
+import { clamp, roundTo, pipe, remap, curry, reflect } from '../lib/util/index';
+import { html, lit } from '../lib/lit';
 import { defaultStyles } from './common';
 import shft from 'shftjs';
 const { drag } = shft;
@@ -58,6 +58,15 @@ const properties = {
             dispatch(host, 'changed', { bubbles: true, composed: true, detail: { value } });
         },
     },
+    bar: {
+        get: ({ render }) => {
+            const target = render();
+            return target.querySelector('.slider-bar');
+        },
+        observe: (_, value, lastValue) => {
+            if (value && value !== lastValue) drag(value);
+        },
+    },
 };
 
 const _dragHandle = (host, { clientX }) => {
@@ -66,15 +75,15 @@ const _dragHandle = (host, { clientX }) => {
     host.value = clamp(min, max, roundTo(step, remap(0, clientWidth, min, max, offsetX)));
 };
 
-const template = (host) => {
+const template = host => {
     const { min, max, value, clientWidth } = host;
 
     return html`
         ${defaultStyles} ${styles}
         <div
             class="slider-bar"
-            @drag=${(e) => _dragHandle(host, e)}
-            @mousedown=${(e) => _dragHandle(host, e)}
+            @drag=${e => _dragHandle(host, e)}
+            @mousedown=${e => _dragHandle(host, e)}
         >
             <div
                 tabindex="0"
@@ -86,9 +95,6 @@ const template = (host) => {
                 )}px) translateX(-50%);"
             ></div>
         </div>
-        ${once(() => {
-            findElement('.slider-bar', host.shadowRoot).then(drag).catch(console.log);
-        })}
     `;
 };
 

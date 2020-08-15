@@ -83,7 +83,7 @@ export async function repeatUntil(callback, eventType, delay = 500) {
  *
  * @param selector Selector string.
  * @param context Context for `selector`.  Defaults to `document`.
- * @param expire Expiration time (milliseconds).  Defaults to 1000.
+ * @param timeout Expiration time (milliseconds).  Defaults to 1000.
  */
 export const findElement = (selector: string, context: ParentNode = document, timeout = 1000) => {
     return new Promise((resolve, reject) => {
