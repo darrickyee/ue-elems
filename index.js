@@ -115,6 +115,30 @@ const marker = `{{lit-${String(Math.random()).slice(2)}}}`;
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
+/**
+ * Our TrustedTypePolicy for HTML which is declared using the html template
+ * tag function.
+ *
+ * That HTML is a developer-authored constant, and is parsed with innerHTML
+ * before any untrusted expressions have been mixed in. Therefor it is
+ * considered safe by construction.
+ */
+const policy = window.trustedTypes &&
+    trustedTypes.createPolicy('lit-html', { createHTML: (s) => s });
+
+/**
+ * @license
+ * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
 const isPrimitive = (value) => {
     return (value === null ||
         !(typeof value === 'object' || typeof value === 'function'));
@@ -194,7 +218,7 @@ let eventOptionsSupported = false;
 // This line will be used in regexes to search for lit-html usage.
 // TODO(justinfagnani): inject version number at build time
 if (typeof window !== 'undefined') {
-    (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.2.1');
+    (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.3.0');
 }
 
 /**
