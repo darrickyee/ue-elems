@@ -1006,7 +1006,7 @@ const properties$2 = {
     max: reflect('max', 100),
     step: reflect('step', 1),
     value: Object.assign(Object.assign({}, reflect('value', 0)), { observe: (host, value) => {
-            dispatch$1(host, 'changed', { bubbles: true, composed: true, detail: { value } });
+            dispatch$1(host, 'change', { bubbles: true, composed: true, detail: { value } });
         } }),
     bar: {
         get: ({ render }) => {

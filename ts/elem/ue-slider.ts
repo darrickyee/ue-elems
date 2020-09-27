@@ -55,7 +55,7 @@ const properties = {
     value: {
         ...reflect('value', 0),
         observe: (host, value) => {
-            dispatch(host, 'changed', { bubbles: true, composed: true, detail: { value } });
+            dispatch(host, 'change', { bubbles: true, composed: true, detail: { value } });
         },
     },
     bar: {
