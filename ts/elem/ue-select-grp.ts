@@ -5,7 +5,7 @@ import { reflect } from '../lib/util';
 
 const properties = {
     ...SingleSelectGroup,
-    direction: reflect('direction', 'column')
+    direction: reflect('direction', 'column'),
 };
 
 const styles = html`
@@ -20,7 +20,7 @@ const styles = html`
     </style>
 `;
 
-const UeSelectGrp = define('ue-select-grp', {
+export const UeSelectGrp = define(null, {
     ...properties,
     render: lit(
         host =>
@@ -30,7 +30,5 @@ const UeSelectGrp = define('ue-select-grp', {
                     ${buttonList(host)}
                 </div>
             `
-    )
+    ),
 });
-
-export { UeSelectGrp };

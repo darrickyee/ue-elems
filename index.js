@@ -520,13 +520,13 @@ const styles = html `
     </style>
 `;
 const properties = {
-    lineWidth: reflect('line-width', 1)
+    lineWidth: reflect('line-width', 1),
 };
 const template = host => html `
     ${styles}
     <div style="text-shadow: ${shadowStyle(host)};"><slot></slot></div>
 `;
-const UeText = define('ue-text', Object.assign(Object.assign({}, properties), { render: lit(template) }));
+const UeText = define(null, Object.assign(Object.assign({}, properties), { render: lit(template) }));
 
 const styleProps = {
     inverted: false,
@@ -704,7 +704,7 @@ const template$1 = host => {
         </button>
     `;
 };
-const UeButton = define('ue-button', Object.assign(Object.assign({}, properties$1), { render: lit(template$1) }));
+const UeButton = define(null, Object.assign(Object.assign({}, properties$1), { render: lit(template$1) }));
 
 const _GLOBAL = (function _init(obj) {
     const data = obj['_SHFTJS'] || {};
@@ -974,7 +974,7 @@ const styles$2 = html `
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 3em;
+            height: 1em;
             cursor: default;
         }
 
@@ -991,11 +991,11 @@ const styles$2 = html `
 
         .handle {
             cursor: default;
-            width: 2.5em;
-            height: 2.5em;
+            width: 1em;
+            height: 1em;
             /* background: var(--ue-default-c-primary); */
             background-color: rgba(255, 0, 0, 0.3);
-            clip-path: circle(1em);
+            clip-path: circle(0.5em);
             position: absolute;
             left: 0;
         }
@@ -1041,7 +1041,7 @@ const template$2 = host => {
         </div>
     `;
 };
-const UeSlider = define('ue-slider', Object.assign(Object.assign({}, properties$2), { render: lit(template$2) }));
+const UeSlider = define(null, Object.assign(Object.assign({}, properties$2), { render: lit(template$2) }));
 
 // Arrow
 const arrow = svg `
@@ -1084,7 +1084,7 @@ const properties$3 = { shape: 'arrow' };
 const template$3 = host => html `
         ${styles$3} ${shapes[host.shape]}
     `;
-const UeIcon = define('ue-icon', Object.assign(Object.assign({}, properties$3), { render: lit(template$3) }));
+const UeIcon = define(null, Object.assign(Object.assign({}, properties$3), { render: lit(template$3) }));
 
 const Item = {
     _ue_item: true,
@@ -1111,8 +1111,8 @@ const selectSingle = curry((itemArray, item) => {
         i.selected = i === item;
     });
 });
-const UeListItem = define('ue-list-item', ListItem);
-const UeContentItem = define('ue-content-item', ContentItem);
+const UeListItem = define(null, ListItem);
+const UeContentItem = define(null, ContentItem);
 
 const singleSelect = {
     get: ({ items }, lastValue) => items.map(item => item.selected).indexOf(true),
@@ -1191,7 +1191,7 @@ const template$4 = host => html `
         </div>
         <slot></slot>
     `;
-const UeTabGroup = define('ue-tab-group', Object.assign(Object.assign({}, properties$4), { render: lit(template$4) }));
+const UeTabGroup = define(null, Object.assign(Object.assign({}, properties$4), { render: lit(template$4) }));
 
 const properties$5 = Object.assign(Object.assign({}, SingleSelectGroup), { open: {
         connect: (host, key) => {
@@ -1260,7 +1260,7 @@ const template$5 = host => {
         </div>
     `;
 };
-const UeDropdown = define('ue-dropdown', Object.assign(Object.assign({}, properties$5), { render: lit(template$5) }));
+const UeDropdown = define(null, Object.assign(Object.assign({}, properties$5), { render: lit(template$5) }));
 
 const properties$6 = {
     // value: {
@@ -1318,7 +1318,7 @@ const template$6 = host => {
         </div>
     `;
 };
-const UeProgressBar = define('ue-progress-bar', Object.assign(Object.assign({}, properties$6), { render: lit(template$6) }));
+const UeProgressBar = define(null, Object.assign(Object.assign({}, properties$6), { render: lit(template$6) }));
 
 const properties$7 = Object.assign(Object.assign({}, SingleSelectGroup), { direction: reflect('direction', 'column') });
 const styles$6 = html `
@@ -1332,7 +1332,7 @@ const styles$6 = html `
         }
     </style>
 `;
-const UeSelectGrp = define('ue-select-grp', Object.assign(Object.assign({}, properties$7), { render: lit(host => html `
+const UeSelectGrp = define(null, Object.assign(Object.assign({}, properties$7), { render: lit(host => html `
                 ${styles$6}
                 <div style="display: flex; flex-direction: ${host.direction}">
                     ${buttonList(host)}
@@ -1382,7 +1382,7 @@ const template$7 = ({ direction, duration, open }) => html `
             <slot></slot>
         </div>
     `;
-const UeDrawer = define('ue-drawer', Object.assign(Object.assign({}, properties$8), { render: lit(template$7) }));
+const UeDrawer = define(null, Object.assign(Object.assign({}, properties$8), { render: lit(template$7) }));
 
 const properties$9 = Object.assign(Object.assign({}, ItemGroup), { selected: singleSelectProp });
 const itemTemplate = (item, _, itemArray) => {

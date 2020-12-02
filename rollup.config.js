@@ -10,7 +10,7 @@ export default [
         external: ['lit-html', 'hybrids'],
     },
     {
-        input: './src/core.js',
+        input: './src/ue-elems.js',
         output: {
             file: 'ue-elems.js',
             format: 'iife',

@@ -20,7 +20,7 @@ const styles = html`
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 3em;
+            height: 1em;
             cursor: default;
         }
 
@@ -37,11 +37,11 @@ const styles = html`
 
         .handle {
             cursor: default;
-            width: 2.5em;
-            height: 2.5em;
+            width: 1em;
+            height: 1em;
             /* background: var(--ue-default-c-primary); */
             background-color: rgba(255, 0, 0, 0.3);
-            clip-path: circle(1em);
+            clip-path: circle(0.5em);
             position: absolute;
             left: 0;
         }
@@ -98,7 +98,7 @@ const template = host => {
     `;
 };
 
-export const UeSlider = define('ue-slider', {
+export const UeSlider = define(null, {
     ...properties,
     render: lit(template),
 });

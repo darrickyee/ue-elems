@@ -48,7 +48,7 @@ const template = host =>
         ${styles} ${shapes[host.shape]}
     `;
 
-export const UeIcon = define('ue-icon', {
+export const UeIcon = define(null, {
     ...properties,
     render: lit(template)
 });

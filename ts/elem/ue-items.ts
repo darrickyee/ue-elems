@@ -45,6 +45,6 @@ const selectSingle = curry((itemArray, item) => {
     });
 });
 
-export const UeListItem = define('ue-list-item', ListItem);
-export const UeContentItem = define('ue-content-item', ContentItem);
+export const UeListItem = define(null, ListItem);
+export const UeContentItem = define(null, ContentItem);
 export { Item, ItemGroup, selectSingle, singleSelectProp };

@@ -83,4 +83,4 @@ const template = host => {
     `;
 };
 
-export const UeDropdown = define('ue-dropdown', { ...properties, render: lit(template) });
+export const UeDropdown = define(null, { ...properties, render: lit(template) });

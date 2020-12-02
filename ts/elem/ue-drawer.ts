@@ -52,4 +52,4 @@ const template = ({ direction, duration, open }) =>
         </div>
     `;
 
-export const UeDrawer = define('ue-drawer', { ...properties, render: lit(template) });
+export const UeDrawer = define(null, { ...properties, render: lit(template) });

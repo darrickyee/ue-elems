@@ -48,4 +48,4 @@ const template = host =>
         <slot></slot>
     `;
 
-export const UeTabGroup = define('ue-tab-group', { ...properties, render: lit(template) });
+export const UeTabGroup = define(null, { ...properties, render: lit(template) });

@@ -32,7 +32,7 @@ const styles = html`
 `;
 
 const properties = {
-    lineWidth: reflect('line-width', 1)
+    lineWidth: reflect('line-width', 1),
 };
 
 const template = host => html`
@@ -40,9 +40,9 @@ const template = host => html`
     <div style="text-shadow: ${shadowStyle(host)};"><slot></slot></div>
 `;
 
-export const UeText = define('ue-text', {
+export const UeText = define(null, {
     ...properties,
-    render: lit(template)
+    render: lit(template),
 });
 
 export { shadowStyle };

@@ -64,4 +64,4 @@ const template = host => {
     `;
 };
 
-export const UeProgressBar = define('ue-progress-bar', { ...properties, render: lit(template) });
+export const UeProgressBar = define(null, { ...properties, render: lit(template) });

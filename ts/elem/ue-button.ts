@@ -126,7 +126,7 @@ const template = host => {
     `;
 };
 
-export const UeButton = define('ue-button', {
+export const UeButton = define(null, {
     ...properties,
     render: lit(template),
 });
